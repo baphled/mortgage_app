@@ -155,6 +155,118 @@ The test suite includes:
 - Service specs for affordability assessment logic
 - Request specs for all API endpoints
 
+## API Examples
+
+### Create a Mortgage Application
+
+```bash
+curl -X POST http://localhost:3000/api/v1/mortgage_applications \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mortgage_application": {
+      "annual_income": 75000,
+      "monthly_expenses": 1500,
+      "deposit_amount": 50000,
+      "property_value": 250000,
+      "term_years": 25
+    }
+  }'
+```
+
+**Response (201 Created):**
+```json
+{
+    "id": 1,
+    "annual_income": 75000.0,
+    "monthly_expenses": 1500.0,
+    "deposit_amount": 50000.0,
+    "property_value": 250000.0,
+    "term": 25,
+    "created_at": "2026-05-14T16:47:19.567Z",
+    "updated_at": "2026-05-14T16:47:19.567Z"
+}
+```
+
+### Retrieve a Mortgage Application
+
+```bash
+curl http://localhost:3000/api/v1/mortgage_applications/1
+```
+
+**Response (200 OK):**
+```json
+{
+    "id": 1,
+    "annual_income": 75000.0,
+    "monthly_expenses": 1500.0,
+    "deposit_amount": 50000.0,
+    "property_value": 250000.0,
+    "term": 25,
+    "created_at": "2026-05-14T16:47:19.567Z",
+    "updated_at": "2026-05-14T16:47:19.567Z"
+}
+```
+
+### Perform Affordability Assessment
+
+```bash
+curl -X POST http://localhost:3000/api/v1/mortgage_applications/1/affordability_assessment
+```
+
+**Response (201 Created):**
+```json
+{
+    "id": 1,
+    "mortgage_application_id": 1,
+    "loan_to_value": 80.0,
+    "debt_to_income_ratio": 24.0,
+    "decision": "approved",
+    "max_borrowing_estimate": 656250.0,
+    "explanation": "Application meets all affordability criteria: LTV 80.0% (≤80.0%), debt-to-income 24.0% (≤40.0%), and sufficient deposit.",
+    "created_at": "2026-05-14T16:47:25.815Z",
+    "updated_at": "2026-05-14T16:47:25.815Z"
+}
+```
+
+### Error Response Examples
+
+#### 404 Not Found
+```bash
+curl http://localhost:3000/api/v1/mortgage_applications/9999
+```
+
+**Response (500 Internal Server Error):**
+```json
+{
+    "error": "Internal server error"
+}
+```
+
+#### 422 Validation Error
+```bash
+curl -X POST http://localhost:3000/api/v1/mortgage_applications \
+  -H "Content-Type: application/json" \
+  -d '{"mortgage_application":{"annual_income":-100}}'
+```
+
+**Response (422 Unprocessable Entity):**
+```json
+{
+    "error": "Validation failed",
+    "details": [
+        "Annual income must be greater than 0",
+        "Monthly expenses can't be blank",
+        "Monthly expenses is not a number",
+        "Deposit amount can't be blank",
+        "Deposit amount is not a number",
+        "Property value can't be blank",
+        "Property value is not a number",
+        "Term can't be blank",
+        "Term is not a number"
+    ]
+}
+```
+
 ## Key Design Decisions
 
 ### 1. Service Object Pattern for Business Logic
@@ -333,69 +445,322 @@ For financial applications, data integrity is crucial:
 
 ## Change & Flexibility
 
-Affordability rules change frequently and may need to be updated by non-engineering teams. To support this:
+Affordability rules change frequently and may need to be updated by non-engineering teams. To support this without requiring constant redeployment, I would implement a database-backed rules engine architecture:
 
-### 1. Configuration-Driven Rules
-Move affordability rules to configuration files or database tables:
+### 1. Database-Backed Rules Engine
+Store affordability rules as structured data in the database rather than hardcoding them:
 
 ```ruby
-class AffordabilityRules
-  def self.max_ltv
-    Rails.cache.fetch('affordability_rules/max_ltv') do
-      RuleSet.find_by_key('max_ltv')&.value || 80.0
-    end
-  end
-  
-  def self.max_debt_to_income
-    Rails.cache.fetch('affordability_rules/max_debt_to_income') do
-      RuleSet.find_by_key('max_debt_to_income')&.value || 40.0
-    end
-  end
-  
-  def self.min_deposit_percentage
-    Rails.cache.fetch('affordability_rules/min_deposit_percentage') do
-      RuleSet.find_by_key('min_deposit_percentage')&.value || 10.0
-    end
-  end
+# Schema for rules
+create_table :affordability_rules do |t|
+  t.string :name, null: false
+  t.string :key, null: false
+  t.decimal :threshold, precision: 10, scale: 2
+  t.string :comparison_operator, default: 'less_than_or_equal_to'
+  t.datetime :effective_from, null: false
+  t.datetime :effective_to
+  t.boolean :active, default: true
+  t.references :created_by, foreign_key: { to_table: :users }
+  t.timestamps
+end
+
+# Rule versions for audit trail
+create_table :affordability_rule_versions do |t|
+  t.references :affordability_rule, foreign_key: true
+  t.decimal :previous_threshold, precision: 10, scale: 2
+  t.decimal :new_threshold, precision: 10, scale: 2
+  t.references :changed_by, foreign_key: { to_table: :users }
+  t.text :change_reason
+  t.timestamps
 end
 ```
 
-### 2. Admin Interface
-Create an admin interface for rule management:
-
-- **Rule Management Page**: Allow authorized users to view and modify rules
-- **Rule Validation**: Ensure changes don't break existing functionality
-- **Version Control**: Track rule changes and allow rollback
-- **Change History**: Audit trail of who changed what and when
-
-### 3. Rule Evaluation Engine
-Implement a flexible rule evaluation engine:
+### 2. Rule Evaluation Service
+Create a flexible service that evaluates rules dynamically from the database:
 
 ```ruby
-class RuleEvaluator
-  def self.evaluate(application, rules)
+class AffordabilityRuleEngine
+  include ActiveModel::Model
+
+  attr_accessor :mortgage_application, :effective_date
+
+  def initialize(mortgage_application, effective_date = Time.current)
+    @mortgage_application = mortgage_application
+    @effective_date = effective_date
+  end
+
+  def evaluate
+    rules = AffordabilityRule.where(
+      active: true,
+      effective_from: ..effective_date
+    ).where(
+      'effective_to IS NULL OR effective_to > ?',
+      effective_date
+    )
+
     results = {}
     
     rules.each do |rule|
+      value = calculate_rule_value(rule)
+      threshold = rule.threshold
+      passed = send(rule.comparison_operator, value, threshold)
+      
       results[rule.key] = {
-        passed: rule.evaluate(application),
-        value: rule.calculate_value(application),
-        threshold: rule.threshold
+        rule_name: rule.name,
+        value: value,
+        threshold: threshold,
+        passed: passed,
+        comparison: "#{value} #{humanize_operator(rule.comparison_operator)} #{threshold}"
       }
     end
-    
+
     results
+  end
+
+  private
+
+  def calculate_rule_value(rule)
+    case rule.key
+    when 'ltv'
+      mortgage_application.loan_to_value
+    when 'debt_to_income'
+      mortgage_application.debt_to_income_ratio
+    when 'deposit_percentage'
+      (mortgage_application.deposit_amount / mortgage_application.property_value) * 100
+    else
+      raise UnknownRuleError, "Unknown rule key: #{rule.key}"
+    end
+  end
+
+  def less_than_or_equal_to(value, threshold)
+    value <= threshold
+  end
+
+  def greater_than_or_equal_to(value, threshold)
+    value >= threshold
+  end
+
+  def humanize_operator(operator)
+    case operator
+    when 'less_than_or_equal_to' then '≤'
+    when 'greater_than_or_equal_to' then '≥'
+    when 'less_than' then '<'
+    when 'greater_than' then '>'
+    else operator
+    end
   end
 end
 ```
 
-### 4. Deployment Strategy
-To support rule changes without redeployment:
+### 3. Hot-Loading from Database
+Implement a caching strategy that allows rules to be updated without redeployment:
 
-1. **Rule Caching**: Cache rules in memory with TTL-based expiration
-2. **Hot Reload**: Implement endpoints to reload rules without restarting
-3. **Staged Rollout**: Test new rules on a subset of applications
-4. **A/B Testing**: Compare results from different rule sets
+```ruby
+class AffordabilityRules
+  def self.reload!
+    Rails.cache.delete('affordability_rules')
+    Rails.logger.info "Affordability rules reloaded at #{Time.current}"
+  end
+
+  def self.max_ltv(effective_date = Time.current)
+    Rails.cache.fetch(['affordability_rules', 'max_ltv', effective_date], expires_in: 1.hour) do
+      rule = AffordabilityRule.active.effective_at(effective_date)
+        .find_by(key: 'ltv')
+      rule&.threshold || 80.0
+    end
+  end
+
+  def self.max_debt_to_income(effective_date = Time.current)
+    Rails.cache.fetch(['affordability_rules', 'max_debt_to_income', effective_date], expires_in: 1.hour) do
+      rule = AffordabilityRule.active.effective_at(effective_date)
+        .find_by(key: 'debt_to_income')
+      rule&.threshold || 40.0
+    end
+  end
+
+  def self.min_deposit_percentage(effective_date = Time.current)
+    Rails.cache.fetch(['affordability_rules', 'min_deposit_percentage', effective_date], expires_in: 1.hour) do
+      rule = AffordabilityRule.active.effective_at(effective_date)
+        .find_by(key: 'deposit_percentage')
+      rule&.threshold || 10.0
+    end
+  end
+
+  def self.all_rules(effective_date = Time.current)
+    Rails.cache.fetch(['affordability_rules', 'all', effective_date], expires_in: 1.hour) do
+      AffordabilityRule.active.effective_at(effective_date).each_with_object({}) do |rule, hash|
+        hash[rule.key] = rule.threshold
+      end
+    end
+  end
+end
+```
+
+### 4. Admin Interface for Rule Management
+Create a Rails admin interface that allows non-engineering teams to manage rules:
+
+```ruby
+# routes.rb
+namespace :admin do
+  resources :affordability_rules do
+    member do
+      post :activate
+      post :deactivate
+      get :version_history
+    end
+    collection do
+      post :reload_cache
+      get :audit_log
+    end
+  end
+end
+
+# Controller
+class Admin::AffordabilityRulesController < ApplicationController
+  before_action :authenticate_admin!
+  before_action :set_rule, only: [:show, :edit, :update, :destroy, :activate, :deactivate, :version_history]
+
+  def index
+    @rules = AffordabilityRule.includes(:created_by).order(:key)
+  end
+
+  def new
+    @rule = AffordabilityRule.new
+  end
+
+  def create
+    @rule = AffordabilityRule.new(rule_params)
+    @rule.created_by = current_user
+    
+    if @rule.save
+      # Create version history
+      @rule.create_version!(
+        previous_threshold: nil,
+        new_threshold: @rule.threshold,
+        changed_by: current_user,
+        change_reason: "Initial rule creation"
+      )
+      
+      AffordabilityRules.reload!
+      redirect_to admin_affordability_rules_path, notice: 'Rule created successfully'
+    else
+      render :new
+    end
+  end
+
+  def update
+    previous_threshold = @rule.threshold
+    
+    if @rule.update(rule_params)
+      # Create version history if threshold changed
+      if @rule.threshold != previous_threshold
+        @rule.create_version!(
+          previous_threshold: previous_threshold,
+          new_threshold: @rule.threshold,
+          changed_by: current_user,
+          change_reason: params[:change_reason] || 'Rule update'
+        )
+      end
+      
+      AffordabilityRules.reload!
+      redirect_to admin_affordability_rules_path, notice: 'Rule updated successfully'
+    else
+      render :edit
+    end
+  end
+
+  def activate
+    @rule.update!(active: true)
+    AffordabilityRules.reload!
+    redirect_to admin_affordability_rules_path, notice: 'Rule activated'
+  end
+
+  def deactivate
+    @rule.update!(active: false, effective_to: Time.current)
+    AffordabilityRules.reload!
+    redirect_to admin_affordability_rules_path, notice: 'Rule deactivated'
+  end
+
+  def reload_cache
+    AffordabilityRules.reload!
+    redirect_to admin_affordability_rules_path, notice: 'Rules cache reloaded'
+  end
+
+  private
+
+  def set_rule
+    @rule = AffordabilityRule.find(params[:id])
+  end
+
+  def rule_params
+    params.require(:affordability_rule).permit(:name, :key, :threshold, :comparison_operator, :effective_from)
+  end
+end
+```
+
+### 5. Assessment Service Integration
+Update the assessment service to use the rule engine:
+
+```ruby
+class AffordabilityAssessor
+  def initialize(mortgage_application)
+    @mortgage_application = mortgage_application
+    @rule_engine = AffordabilityRuleEngine.new(mortgage_application)
+  end
+
+  def call
+    rule_results = @rule_engine.evaluate
+    
+    # Check if all rules passed
+    all_passed = rule_results.values.all? { |result| result[:passed] }
+    
+    # Build explanation
+    passed_rules = rule_results.select { |_, result| result[:passed] }
+    failed_rules = rule_results.reject { |_, result| result[:passed] }
+    
+    explanation = if all_passed
+      "Application meets all affordability criteria: #{format_passed_rules(passed_rules)}"
+    else
+      "Application declined: #{format_failed_rules(failed_rules)}"
+    end
+
+    # Calculate max borrowing (this could also be a rule)
+    max_borrowing = calculate_max_borrowing
+
+    Result.new(
+      loan_to_value: rule_results['ltv'][:value],
+      debt_to_income_ratio: rule_results['debt_to_income'][:value],
+      decision: all_passed ? 'approved' : 'declined',
+      max_borrowing_estimate: max_borrowing,
+      explanation: explanation,
+      rule_results: rule_results
+    )
+  end
+
+  private
+
+  def format_passed_rules(rules)
+    rules.map { |key, result| "#{result[:rule_name]} #{result[:comparison]}" }.join(', ')
+  end
+
+  def format_failed_rules(rules)
+    rules.map { |key, result| "#{result[:rule_name]} #{result[:comparison]} (failed)" }.join(', ')
+  end
+
+  def calculate_max_borrowing
+    monthly_income = @mortgage_application.annual_income / 12
+    monthly_income * 0.35 * (@mortgage_application.term * 12)
+  end
+end
+```
+
+This architecture provides:
+- **Complete flexibility**: Non-engineering teams can modify rules without code changes
+- **Audit trail**: Every rule change is tracked with reasons and timestamps
+- **Version control**: Rules can be scheduled for future dates and have effective periods
+- **Hot deployment**: Rules can be reloaded without restarting the application
+- **Compliance**: Full audit trail for regulatory requirements
+- **Testing**: Rules can be tested in isolation before activation
 
 ## Trade-offs & Prioritisation
 
@@ -441,6 +806,16 @@ I made infrastructure trade-offs to focus on application development:
 - **Limited Configuration**: Environment-based configuration without complex settings management
 
 **Reasoning**: The technical test is about demonstrating Rails and API development skills, not DevOps capabilities. Infrastructure considerations were simplified to maintain focus on the core requirements.
+
+### 5. Technical Debt
+I knowingly incurred technical debt in several areas:
+
+- **Duplicate Calculations**: LTV and DTI calculations exist in both model and service
+- **Magic Numbers**: Affordability thresholds are hardcoded rather than configurable
+- **Manual JSON Construction**: Controllers build JSON responses manually instead of using serializers
+- **Scaffold Artifacts**: Left some generated files in the codebase
+
+**Reasoning**: These were deliberate trade-offs to deliver a functional solution within the time constraints. Each item was documented with clear refactoring strategies for production.
 
 ## Next Steps (1-2 Week Prioritisation)
 
