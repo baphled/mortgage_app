@@ -3,36 +3,18 @@ class Api::V1::MortgageApplicationsController < ApplicationController
     @mortgage_application = MortgageApplication.new(mortgage_application_params)
     
     if @mortgage_application.save
-      render json: {
-        id: @mortgage_application.id,
-        annual_income: @mortgage_application.annual_income.to_s,
-        monthly_expenses: @mortgage_application.monthly_expenses.to_s,
-        deposit_amount: @mortgage_application.deposit_amount.to_s,
-        property_value: @mortgage_application.property_value.to_s,
-        term: @mortgage_application.term,
-        created_at: @mortgage_application.created_at,
-        updated_at: @mortgage_application.updated_at
-      }, status: :created
+      render json: serialize_mortgage_application(@mortgage_application), status: :created
     else
       render json: { 
         error: 'Validation failed',
         details: @mortgage_application.errors.full_messages 
-      }, status: :unprocessable_entity
+      }, status: :unprocessable_content
     end
   end
 
   def show
     @mortgage_application = MortgageApplication.find(params[:id])
-    render json: {
-      id: @mortgage_application.id,
-      annual_income: @mortgage_application.annual_income.to_s,
-      monthly_expenses: @mortgage_application.monthly_expenses.to_s,
-      deposit_amount: @mortgage_application.deposit_amount.to_s,
-      property_value: @mortgage_application.property_value.to_s,
-      term: @mortgage_application.term,
-      created_at: @mortgage_application.created_at,
-      updated_at: @mortgage_application.updated_at
-    }
+    render json: serialize_mortgage_application(@mortgage_application)
   rescue ActiveRecord::RecordNotFound
     render json: { error: 'Mortgage application not found' }, status: :not_found
   end
@@ -50,24 +32,14 @@ class Api::V1::MortgageApplicationsController < ApplicationController
       explanation: assessment.explanation
     )
     
-    render json: {
-      id: @affordability_assessment.id,
-      mortgage_application_id: @affordability_assessment.mortgage_application_id,
-      loan_to_value: @affordability_assessment.loan_to_value.to_s,
-      debt_to_income_ratio: @affordability_assessment.debt_to_income_ratio.to_s,
-      decision: @affordability_assessment.decision,
-      max_borrowing_estimate: @affordability_assessment.max_borrowing_estimate.to_s,
-      explanation: @affordability_assessment.explanation,
-      created_at: @affordability_assessment.created_at,
-      updated_at: @affordability_assessment.updated_at
-    }, status: :created
+    render json: serialize_affordability_assessment(@affordability_assessment), status: :created
   rescue ActiveRecord::RecordNotFound
     render json: { error: 'Mortgage application not found' }, status: :not_found
   rescue ActiveRecord::RecordInvalid => e
     render json: { 
       error: 'Assessment validation failed',
       details: e.record.errors.full_messages 
-    }, status: :unprocessable_entity
+    }, status: :unprocessable_content
   end
 
   private
@@ -83,5 +55,32 @@ class Api::V1::MortgageApplicationsController < ApplicationController
       # Convert term_years to term for the model
       key == 'term_years' ? 'term' : key
     end
+  end
+
+  def serialize_mortgage_application(application)
+    {
+      id: application.id,
+      annual_income: application.annual_income,
+      monthly_expenses: application.monthly_expenses,
+      deposit_amount: application.deposit_amount,
+      property_value: application.property_value,
+      term: application.term,
+      created_at: application.created_at,
+      updated_at: application.updated_at
+    }
+  end
+
+  def serialize_affordability_assessment(assessment)
+    {
+      id: assessment.id,
+      mortgage_application_id: assessment.mortgage_application_id,
+      loan_to_value: assessment.loan_to_value,
+      debt_to_income_ratio: assessment.debt_to_income_ratio,
+      decision: assessment.decision,
+      max_borrowing_estimate: assessment.max_borrowing_estimate,
+      explanation: assessment.explanation,
+      created_at: assessment.created_at,
+      updated_at: assessment.updated_at
+    }
   end
 end

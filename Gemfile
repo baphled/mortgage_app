@@ -4,10 +4,11 @@ source "https://rubygems.org"
 gem "rails", "~> 8.1.3"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
+# Use SQLite as the database for Active Record
+gem "sqlite3", "~> 2.9"
+
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 # gem "jbuilder"
-# Use Redis adapter to run Action Cable in production
-# gem "redis", ">= 4.0.1"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
@@ -42,13 +43,15 @@ group :development, :test do
 
   # RSpec testing framework
   gem 'rspec-rails', '~> 7.0'
+  
+  # Factory for test data
+  gem "factory_bot_rails", "~> 6.5"
+  
+  # Shoulda matchers for RSpec
+  gem "shoulda-matchers", "~> 7.0"
 end
-gem "factory_bot_rails", "~> 6.5"
-gem "shoulda-matchers", "~> 7.0"
-gem "jbuilder", "~> 2.14"
 
-gem "pg", "~> 1.6", group: :production
-
-gem "active_model_serializers", "~> 0.10.16"
-
-gem "sqlite3", "~> 2.9"
+group :production do
+  # PostgreSQL for production (commented out for development)
+  # gem "pg", "~> 1.6"
+end
