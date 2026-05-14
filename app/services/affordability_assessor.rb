@@ -1,6 +1,13 @@
 class AffordabilityAssessor
   attr_reader :mortgage_application
 
+  # Constants for affordability rules
+  MAX_LTV_PERCENT = 80.0
+  MAX_DTI_PERCENT = 40.0
+  MIN_DEPOSIT_PERCENT = 10.0
+  MAX_INCOME_MULTIPLE = 0.35
+  MAX_TERM_YEARS = 50
+
   # Result struct to hold assessment data
   Result = Struct.new(
     :loan_to_value, 
@@ -35,9 +42,9 @@ class AffordabilityAssessor
   end
 
   def calculate_max_borrowing
-    monthly_income = mortgage_application.annual_income / 12
-    # Maximum borrowing: 35% of monthly income over the term
-    monthly_income * 0.35 * (mortgage_application.term * 12)
+    monthly_income = mortgage_application.annual_income / 12.0
+    # Maximum borrowing: percentage of monthly income over the term
+    monthly_income * MAX_INCOME_MULTIPLE * (mortgage_application.term * 12)
   end
 
   def determine_decision
@@ -46,15 +53,15 @@ class AffordabilityAssessor
   end
 
   def ltv_approved?
-    @ltv <= 80
+    @ltv <= MAX_LTV_PERCENT
   end
 
   def debt_to_income_approved?
-    @debt_to_income_ratio <= 40
+    @debt_to_income_ratio <= MAX_DTI_PERCENT
   end
 
   def deposit_approved?
-    minimum_deposit = mortgage_application.property_value * 0.10
+    minimum_deposit = mortgage_application.property_value * (MIN_DEPOSIT_PERCENT / 100.0)
     mortgage_application.deposit_amount >= minimum_deposit
   end
 
@@ -62,20 +69,20 @@ class AffordabilityAssessor
     reasons = []
     
     unless ltv_approved?
-      reasons << "LTV ratio (#{@ltv.round(2)}%) exceeds maximum of 80%"
+      reasons << "LTV ratio (#{@ltv.round(2)}%) exceeds maximum of #{MAX_LTV_PERCENT}%"
     end
     
     unless debt_to_income_approved?
-      reasons << "Debt-to-income ratio (#{@debt_to_income_ratio.round(2)}%) exceeds maximum of 40%"
+      reasons << "Debt-to-income ratio (#{@debt_to_income_ratio.round(2)}%) exceeds maximum of #{MAX_DTI_PERCENT}%"
     end
     
     unless deposit_approved?
-      minimum_deposit = mortgage_application.property_value * 0.10
+      minimum_deposit = mortgage_application.property_value * (MIN_DEPOSIT_PERCENT / 100.0)
       reasons << "Deposit (#{format_currency(mortgage_application.deposit_amount)}) is less than minimum required #{format_currency(minimum_deposit)}"
     end
 
     if reasons.empty?
-      @explanation = "Application meets all affordability criteria: LTV #{@ltv.round(2)}% (≤80%), debt-to-income #{@debt_to_income_ratio.round(2)}% (≤40%), and sufficient deposit."
+      @explanation = "Application meets all affordability criteria: LTV #{@ltv.round(2)}% (≤#{MAX_LTV_PERCENT}%), debt-to-income #{@debt_to_income_ratio.round(2)}% (≤#{MAX_DTI_PERCENT}%), and sufficient deposit."
     else
       @explanation = "Application declined: #{reasons.join('; ')}."
     end
