@@ -1,127 +1,87 @@
 # Mortgage Application API
 
-A Ruby on Rails JSON API for managing mortgage applications and performing affordability assessments.
+A simple Ruby on Rails backend service for managing mortgage applications with affordability assessment.
 
 ## Overview
 
-This service provides a backend API for managing mortgage applications with three main endpoints:
+This service provides a JSON API for:
+- Submitting mortgage applications
+- Retrieving existing applications
+- Performing basic affordability assessments
 
-1. **Create a mortgage application** - Submit application details for evaluation
-2. **Retrieve an existing application** - Get application details by ID
-3. **Perform affordability assessment** - Evaluate application against lending criteria
+## Prerequisites
 
-The API follows RESTful conventions and returns JSON responses for all endpoints.
+- Ruby 3.2 or higher
+- SQLite 3 (included with most systems)
+- Bundler (`gem install bundler`)
 
-## Setup Instructions
+## Setup
 
-### Prerequisites
-
-- Ruby 3.4.4 or higher
-- PostgreSQL 12 or higher
-- Bundler
-
-### Installation
-
-1. **Clone the repository**
+1. Clone the repository:
    ```bash
    git clone <repository-url>
-   cd mortgage_app
+   cd mortgage-app
    ```
 
-2. **Install dependencies**
+2. Install dependencies:
    ```bash
    bundle install
    ```
 
-3. **Set up the database**
+3. Set up the database:
    ```bash
-   # Create the database
-   rails db:create
-   
-   # Run migrations
-   rails db:migrate
+   bundle exec rails db:create db:migrate
    ```
 
-4. **Set up environment variables (optional)**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your database configuration if needed
-   ```
-
-### Running the Application
-
-1. **Start the Rails server**
-   ```bash
-   rails server
-   ```
-   
-   The API will be available at `http://localhost:3000`
-
-2. **Or run with Puma in production mode**
-   ```bash
-   rails s -e production
-   ```
-
-### Running Tests
-
-1. **Run all tests**
+4. Run the test suite:
    ```bash
    bundle exec rspec
    ```
 
-2. **Run specific test types**
-   ```bash
-   # Run model tests only
-   bundle exec rspec spec/models
-   
-   # Run API request tests only
-   bundle exec rspec spec/requests/api
-   
-   # Run service tests only
-   bundle exec rspec spec/services
-   ```
+## How to Run the Application
 
-3. **Run tests with coverage**
-   ```bash
-   COVERAGE=true bundle exec rspec
-   ```
+Start the Rails server:
 
-## API Endpoints
-
-### Create Mortgage Application
-
-**POST** `/api/v1/mortgage_applications`
-
-Creates a new mortgage application with the provided parameters.
-
-**Request Body:**
-```json
-{
-  "mortgage_application": {
-    "annual_income": 75000,
-    "monthly_expenses": 2000,
-    "deposit_amount": 60000,
-    "property_value": 300000,
-    "term_years": 25
-  }
-}
+```bash
+bundle exec rails server
 ```
 
-**Response (201 Created):**
+The API will be available at `http://localhost:3000`.
+
+### API Endpoints
+
+#### 1. Create a Mortgage Application
+
+**Request:**
+```bash
+curl -X POST http://localhost:3000/api/v1/mortgage_applications \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mortgage_application": {
+      "annual_income": 75000,
+      "monthly_expenses": 2000,
+      "deposit_amount": 50000,
+      "property_value": 250000,
+      "term_years": 25
+    }
+  }'
+```
+
+**Success Response (201):**
 ```json
 {
   "id": 1,
-  "annual_income": "75000.0",
-  "monthly_expenses": "2000.0",
-  "deposit_amount": "60000.0",
-  "property_value": "300000.0",
+  "annual_income": 75000,
+  "monthly_expenses": 2000,
+  "deposit_amount": 50000,
+  "property_value": 250000,
   "term": 25,
-  "created_at": "2026-05-14T10:30:00.000Z",
-  "updated_at": "2026-05-14T10:30:00.000Z"
+  "created_at": "2026-05-14T16:38:00.000Z",
+  "updated_at": "2026-05-14T16:38:00.000Z"
 }
 ```
 
-**Error Response (422 Unprocessable Entity):**
+**Error Response (422):**
 ```json
 {
   "error": "Validation failed",
@@ -132,255 +92,433 @@ Creates a new mortgage application with the provided parameters.
 }
 ```
 
-### Retrieve Mortgage Application
+#### 2. Retrieve a Mortgage Application
 
-**GET** `/api/v1/mortgage_applications/:id`
+**Request:**
+```bash
+curl -X GET http://localhost:3000/api/v1/mortgage_applications/1
+```
 
-Retrieves an existing mortgage application by ID.
-
-**Response (200 OK):**
+**Success Response (200):**
 ```json
 {
   "id": 1,
-  "annual_income": "75000.0",
-  "monthly_expenses": "2000.0",
-  "deposit_amount": "60000.0",
-  "property_value": "300000.0",
+  "annual_income": 75000,
+  "monthly_expenses": 2000,
+  "deposit_amount": 50000,
+  "property_value": 250000,
   "term": 25,
-  "created_at": "2026-05-14T10:30:00.000Z",
-  "updated_at": "2026-05-14T10:30:00.000Z"
+  "created_at": "2026-05-14T16:38:00.000Z",
+  "updated_at": "2026-05-14T16:38:00.000Z"
 }
 ```
 
-**Error Response (404 Not Found):**
+**Error Response (404):**
 ```json
 {
   "error": "Mortgage application not found"
 }
 ```
 
-### Perform Affordability Assessment
+#### 3. Perform Affordability Assessment
 
-**POST** `/api/v1/mortgage_applications/:id/affordability_assessment`
+**Request:**
+```bash
+curl -X POST http://localhost:3000/api/v1/mortgage_applications/1/affordability_assessment
+```
 
-Performs an affordability assessment for an existing mortgage application.
-
-**Response (201 Created):**
+**Success Response (201) - Approved:**
 ```json
 {
   "id": 1,
   "mortgage_application_id": 1,
-  "loan_to_value": "80.0",
-  "debt_to_income_ratio": "32.0",
+  "loan_to_value": 80.0,
+  "debt_to_income_ratio": 32.0,
   "decision": "approved",
-  "max_borrowing_estimate": "656250.0",
+  "max_borrowing_estimate": 656250.0,
   "explanation": "Application meets all affordability criteria: LTV 80.0% (≤80%), debt-to-income 32.0% (≤40%), and sufficient deposit.",
-  "created_at": "2026-05-14T10:30:00.000Z",
-  "updated_at": "2026-05-14T10:30:00.000Z"
+  "created_at": "2026-05-14T16:38:00.000Z",
+  "updated_at": "2026-05-14T16:38:00.000Z"
 }
 ```
 
-**Error Response (404 Not Found):**
+**Success Response (201) - Declined:**
+```json
+{
+  "id": 2,
+  "mortgage_application_id": 2,
+  "loan_to_value": 90.0,
+  "debt_to_income_ratio": 32.0,
+  "decision": "declined",
+  "max_borrowing_estimate": 656250.0,
+  "explanation": "Application declined: LTV ratio (90.0%) exceeds maximum of 80%.",
+  "created_at": "2026-05-14T16:38:00.000Z",
+  "updated_at": "2026-05-14T16:38:00.000Z"
+}
+```
+
+**Error Response (404):**
 ```json
 {
   "error": "Mortgage application not found"
 }
 ```
 
-## Affordability Assessment Logic
+## How to Run Tests
 
-The affordability assessment evaluates applications based on three criteria:
+Run the complete test suite:
 
-### 1. Loan-to-Value (LTV) Ratio
-- **Calculation:** `(Property Value - Deposit) / Property Value × 100`
-- **Maximum allowed:** 80%
-- **Purpose:** Ensures borrower has sufficient equity in the property
-
-### 2. Debt-to-Income (DTI) Ratio
-- **Calculation:** `(Monthly Expenses × 12) / Annual Income × 100`
-- **Maximum allowed:** 40%
-- **Purpose:** Ensures borrower can afford monthly payments
-
-### 3. Minimum Deposit
-- **Calculation:** Deposit must be at least 10% of property value
-- **Purpose:** Reduces lender risk and ensures borrower commitment
-
-### Decision Logic
-An application is **approved** only if all three criteria are met. Otherwise, it is **declined** with an explanation of which criteria failed.
-
-### Maximum Borrowing Estimate
-- **Calculation:** `(Annual Income / 12) × 0.35 × (Term × 12)`
-- **Assumption:** 35% of monthly income can be used for mortgage payments over the term
-
-## Design & Reflection
-
-### Key Design Decisions
-
-#### 1. Service Layer for Business Logic
-I chose to implement the affordability assessment logic in a dedicated `AffordabilityAssessor` service class rather than in the model or controller. This decision provides:
-
-- **Separation of concerns:** Business logic is isolated from persistence and presentation layers
-- **Testability:** The service can be unit tested independently of the Rails framework
-- **Reusability:** The service can be used from controllers, background jobs, or other contexts
-- **Maintainability:** Complex lending rules are centralized and easier to modify
-
-#### 2. Structured Results with Value Objects
-The `AffordabilityAssessor::Result` class uses a `Struct` with a custom `approved?` method to represent assessment outcomes. This provides:
-
-- **Type safety:** Assessment results have a well-defined structure
-- **Explicit interface:** The `approved?` predicate makes decisions clear
-- **Immutable data:** Struct instances are immutable, preventing accidental modification
-- **Better testing:** The structured result makes assertions cleaner in tests
-
-#### 3. API-First Design with JSON Responses
-The application is built as a pure JSON API with:
-
-- **Consistent response format:** All endpoints return structured JSON with predictable keys
-- **Proper HTTP status codes:** Using semantic status codes (201, 422, 404) for different outcomes
-- **Input validation:** All required fields are validated with clear error messages
-- **API versioning:** Endpoints are namespaced under `/api/v1/` for future evolution
-
-### System Evolution
-
-If this service needed to support a production mortgage platform, I would evolve the current implementation in several ways:
-
-#### System Boundaries
-- **Keep:** Core mortgage application model and assessment service as the central domain
-- **Separate:** Authentication and authorization into a separate service (OAuth2 provider)
-- **Separate:** Document management (proof of income, bank statements) into dedicated file service
-- **Separate:** Credit scoring and third-party data checks into specialized services
-- **Separate:** Reporting and analytics into a data warehouse pipeline
-
-#### Handling Increased Load
-- **Database:** Implement read replicas for reporting queries and connection pooling
-- **Caching:** Add Redis caching for frequent affordability assessments and application lookups
-- **Async Processing:** Move affordability assessments to background jobs for better throughput
-- **Load Balancing:** Deploy multiple instances behind a load balancer
-- **Database Sharding:** Consider sharding by customer region or application date for very large scale
-
-#### Introducing Asynchronous Processing
-- **Background Jobs:** Use Sidekiq or GoodJob for processing affordability assessments
-- **Webhook Support:** Allow clients to receive notifications when assessments complete
-- **Queuing System:** Implement priority queues for different assessment types
-- **Batch Processing:** Support bulk assessments for pipeline applications
-- **Status Tracking:** Add assessment status (pending, processing, completed, failed)
-
-### Operational Considerations
-
-#### Failure Handling
-- **Circuit Breakers:** Implement circuit breakers for external service calls
-- **Retry Logic:** Exponential backoff for transient failures
-- **Graceful Degradation:** Serve cached results when services are unavailable
-- **Dead Letter Queues:** Route failed assessments to review queues
-- **Transaction Boundaries:** Use database transactions to ensure data consistency
-
-#### Monitoring and Observability
-- **Application Metrics:** Track request rates, response times, and error rates
-- **Business Metrics:** Monitor approval rates, average LTV/DTI, and application volume
-- **Error Tracking:** Integrate with error monitoring services (Sentry, Bugsnag)
-- **Health Checks:** Implement health check endpoints for load balancers
-- **Distributed Tracing:** Trace requests across service boundaries
-
-#### Data Integrity and Auditability
-- **Audit Logging:** Log all assessment decisions with reasoning and timestamps
-- **Immutable Records:** Never delete assessments, only create new versions
-- **Data Encryption:** Encrypt sensitive data at rest and in transit
-- **Backup Strategy:** Regular database backups with point-in-time recovery
-- **Compliance Logging:** Maintain logs for regulatory compliance requirements
-
-### Change & Flexibility
-
-Affordability rules change frequently and may be updated by non-engineering teams. To support this without constant redeployment:
-
-#### Rule Configuration System
-- **Database-Driven Rules:** Store lending criteria (LTV max, DTI max, deposit min) in database tables
-- **Rule Versioning:** Maintain version history of all rule changes
-- **A/B Testing:** Support testing new rules against current rules
-- **Rule Evaluation Engine:** Build a flexible engine that can evaluate complex rule sets
-
-#### Administrative Interface
-- **Web Dashboard:** Provide non-technical users with UI to modify rules
-- **Change Approval Workflow:** Implement approval processes for rule changes
-- **Scheduled Changes:** Allow scheduling rule changes for future dates
-- **Impact Analysis:** Show how many applications would be affected by proposed changes
-
-#### Dynamic Rule Loading
-- **Hot Reload:** Load new rules without application restart
-- **Rule Caching:** Cache rules in memory with invalidation on changes
-- **Rule Validation:** Validate new rules before activation
-- **Fallback Rules:** Maintain safe defaults if rules become invalid
-
-### Trade-offs & Prioritisation
-
-Given limited time, I deliberately kept several aspects simple:
-
-#### What I Kept Simple
-1. **Authentication:** No authentication system was implemented. In production, this would be the first priority.
-2. **Background Processing:** All assessments are synchronous. Async processing would be added for production.
-3. **Database Schema:** Simple schema with minimal optimizations. Production would need indexing strategies.
-4. **Error Handling:** Basic error handling. Production would need more sophisticated error scenarios.
-5. **Documentation:** API documentation could be generated with OpenAPI/Swagger for production use.
-
-#### What I Would Prioritise in 1-2 Weeks
-1. **Authentication & Authorization:** Implement JWT-based auth with role-based access control
-   - **Why:** Essential for production security and user management
-   - **Impact:** Enables multi-tenant usage and audit trails
-
-2. **Background Processing:** Move assessments to background jobs
-   - **Why:** Improves user experience and system throughput
-   - **Impact:** Allows handling of concurrent assessments without blocking
-
-3. **Enhanced Error Handling & Monitoring**
-   - **Why:** Critical for production reliability and debugging
-   - **Impact:** Reduces Mean Time To Resolution (MTTR) for issues
-
-4. **API Documentation:** Generate comprehensive API documentation
-   - **Why:** Essential for developer experience and integration
-   - **Impact:** Reduces integration time for API consumers
-
-5. **Basic Caching:** Implement caching for application lookups and assessments
-   - **Why:** Improves performance for repeated requests
-   - **Impact:** Reduces database load and improves response times
-
-These priorities address the most critical gaps while providing the foundation for a production-ready system.
-
-## Technical Details
-
-### Technologies Used
-- **Ruby 3.4.4**
-- **Rails 8.1.3**
-- **PostgreSQL** (database)
-- **RSpec** (testing framework)
-- **FactoryBot** (test fixtures)
-- **Shoulda Matchers** (model validation testing)
-
-### Project Structure
-```
-mortgage_app/
-├── app/
-│   ├── controllers/api/v1/
-│   │   └── mortgage_applications_controller.rb
-│   ├── models/
-│   │   ├── mortgage_application.rb
-│   │   └── affordability_assessment.rb
-│   └── services/
-│       └── affordability_assessor.rb
-├── spec/
-│   ├── models/
-│   ├── requests/api/v1/
-│   └── services/
-├── config/
-│   └── routes.rb
-├── db/
-│   └── migrate/
-├── Gemfile
-└── README.md
+```bash
+bundle exec rspec
 ```
 
-### Development Notes
+Run specific test types:
 
-- The application uses Rails API mode for lightweight JSON responses
-- All business logic is encapsulated in service objects
-- Comprehensive test coverage for models, controllers, and services
-- Database migrations include proper constraints and indexes
-- Error handling follows Rails conventions with appropriate HTTP status codes
+```bash
+# Model tests
+bundle exec rspec spec/models/
+
+# Request/integration tests
+bundle exec rspec spec/requests/
+
+# Service tests
+bundle exec rspec spec/services/
+```
+
+## Key Design Decisions
+
+### 1. Service Object Pattern for Business Logic
+
+**Decision:** Extracted affordability calculation logic into a dedicated `AffordabilityAssessor` service object.
+
+**Why:**
+- **Separation of Concerns:** Keeps business rules out of controllers and models
+- **Testability:** Pure Ruby objects are easier to unit test in isolation
+- **Reusability:** The service can be called from controllers, background jobs, or console
+- **Maintainability:** Business rules change frequently; having them in one place reduces duplication
+
+**Alternatives Considered:**
+- **Model callbacks:** Would tightly couple business logic to persistence
+- **Controller methods:** Would make controllers fat and harder to test
+- **Concerns:** Would mix business logic with model behavior
+
+### 2. API Versioning with Namespacing
+
+**Decision:** Implemented API endpoints under `/api/v1/` namespace.
+
+**Why:**
+- **Future Evolution:** Enables introducing v2 changes without breaking existing clients
+- **Clear Contract:** Explicit version communicates stability expectations
+- **Routing Organization:** Separates API routes from potential web interface routes
+
+**Trade-off:** Slightly more verbose URLs, but worth it for long-term maintainability.
+
+### 3. Manual JSON Serialization
+
+**Decision:** Implemented manual JSON serialization in controller helper methods rather than using Active Model Serializers.
+
+**Why:**
+- **Simplicity:** The response structures are straightforward and unlikely to change frequently
+- **Performance:** Avoids the overhead of a serialization layer for simple cases
+- **Explicit Control:** Full control over the exact JSON structure returned
+
+**When This Would Change:** If the API grows complex with nested associations, conditional fields, or client-specific formatting, I would reintroduce a proper serialization layer.
+
+## System Evolution
+
+### Current System Boundaries
+
+The current monolithic Rails application handles:
+- HTTP request handling
+- Business logic (affordability calculations)
+- Data persistence
+- API response formatting
+
+### Microservice Separation Strategy
+
+For a production mortgage platform, I would evolve toward:
+
+**1. API Gateway Layer**
+- Handles authentication, rate limiting, request routing
+- Terminates SSL, manages CORS
+- Provides unified API documentation
+
+**2. Application Service (Current Rails app)**
+- Focus on mortgage application workflow and business rules
+- Becomes the core domain service
+
+**3. Assessment Service**
+- Dedicated microservice for affordability calculations
+- Can be scaled independently based on assessment load
+- Enables different calculation engines or third-party integrations
+
+**4. Data Service**
+- Separate service for customer data, property data, etc.
+- Enables different storage strategies per data type
+
+### Handling Increased Load
+
+**Short-term (1-3 months):**
+- Add database indexes on frequently queried columns
+- Implement HTTP caching with `ETag` headers for repeated requests
+- Add background job processing for assessments
+
+**Medium-term (3-6 months):**
+- Database read replicas for reporting queries
+- Introduce Redis for session management and rate limiting
+- Container-based deployment with Kubernetes for horizontal scaling
+
+**Long-term (6+ months):**
+- Implement the microservice separation strategy above
+- Add event-driven architecture for real-time updates
+- Implement circuit breakers and graceful degradation
+
+### Introducing Asynchronous Processing
+
+**Current:** Assessments run synchronously during the HTTP request
+
+**Evolution Path:**
+1. **Immediate:** Wrap assessment logic in ActiveJob for background processing
+2. **Short-term:** Implement `202 Accepted` response with job status polling
+3. **Medium-term:** WebSocket notifications for assessment completion
+4. **Long-term:** Event-sourced architecture with eventual consistency
+
+## Operational Considerations
+
+### Failure Handling
+
+**Request Failures:**
+- **Validation errors:** Return 422 with detailed error messages
+- **Not found:** Return 404 with consistent error format
+- **Server errors:** Return 500 with generic error (no stack traces in production)
+
+**Database Failures:**
+- **Connection timeouts:** Implement connection pooling and retry logic
+- **Deadlocks:** Add automatic retry with exponential backoff
+- **Data corruption:** Regular database integrity checks
+
+### Monitoring and Observability
+
+**Essential Metrics:**
+- Request rates and response times by endpoint
+- Error rates by type (422, 404, 500)
+- Database query performance
+- Background job queue depth and success rates
+
+**Logging Strategy:**
+```ruby
+# Structured logging example
+Rails.logger.info "MortgageApplication.created", {
+  application_id: mortgage_application.id,
+  annual_income: mortgage_application.annual_income,
+  property_value: mortgage_application.property_value,
+  user_agent: request.user_agent,
+  ip_address: request.remote_ip
+}
+```
+
+**Alerting Rules:**
+- Error rate > 5% for 5 minutes
+- P95 response time > 2 seconds
+- Failed background jobs > 10% of total
+- Database connection pool exhaustion
+
+### Data Integrity and Auditability
+
+**Database Constraints:**
+- Add `CHECK` constraints for business rules (e.g., `deposit_amount <= property_value`)
+- Unique constraints where appropriate
+- Foreign key constraints with cascading deletes
+
+**Audit Trail:**
+```ruby
+class AssessmentAudit < ApplicationRecord
+  belongs_to :mortgage_application
+  stores :assessment_data, coder: JSON
+  
+  # Track who made what changes when
+  validates :assessed_by, presence: true
+  validates :assessment_version, presence: true
+end
+```
+
+**Compliance Considerations:**
+- GDPR: Right to be forgotten requires proper data deletion workflows
+- Financial regulations: Immutable audit trails for all decisions
+- Data retention: Automated archival of old applications
+
+## Change & Flexibility
+
+### Rules-as-Data Architecture
+
+**Current Problem:** Affordability rules are hardcoded magic numbers in the `AffordabilityAssessor` service.
+
+**Solution:** Implement a database-driven rules engine:
+
+```ruby
+class AffordabilityRule < ApplicationRecord
+  validates :name, uniqueness: true
+  validates :rule_type, inclusion: { in: %w[ltv_threshold dti_threshold deposit_percentage max_income_multiple] }
+  validates :value, numericality: { greater_than: 0 }
+  validates :active, inclusion: { in: [true, false] }
+  
+  scope :active, -> { where(active: true) }
+end
+
+class RulesEngine
+  def self.ltv_threshold
+    AffordabilityRule.active.find_by(rule_type: 'ltv_threshold')&.value || 80.0
+  end
+  
+  def self.dti_threshold
+    AffordabilityRule.active.find_by(rule_type: 'dti_threshold')&.value || 40.0
+  end
+end
+```
+
+### Admin Interface for Non-Engineering Teams
+
+**Features:**
+- Web interface for compliance/risk teams to update rules
+- Rule versioning with audit trail
+- A/B testing framework for new rules
+- Scheduled rule changes (effective dates)
+
+### Hot-Reloading Without Deployment
+
+**Implementation:**
+```ruby
+class AffordabilityAssessor
+  def initialize(mortgage_application, rules_version: nil)
+    @mortgage_application = mortgage_application
+    @rules = RulesCache.current(rules_version)
+  end
+  
+  private
+  
+  def rules_version
+    @rules || RulesCache.current
+  end
+end
+
+class RulesCache
+  def self.current(version = nil)
+    Rails.cache.fetch('affordability_rules', expires_in: 5.minutes) do
+      AffordabilityRule.active.to_h { |r| [r.rule_type, r.value] }
+    end
+  end
+end
+```
+
+### Rule Versioning and Auditing
+
+**Assessment Snapshot:**
+```ruby
+class AffordabilityAssessment < ApplicationRecord
+  belongs_to :mortgage_application
+  
+  # Snapshot the rules used for this assessment
+  serialize :rules_snapshot, JSON
+  
+  before_create :snapshot_rules
+  
+  private
+  
+  def snapshot_rules
+    self.rules_snapshot = RulesCache.current.as_json
+  end
+end
+```
+
+## Trade-offs & Prioritisation
+
+### What I Deliberately Kept Simple
+
+**1. No Authentication**
+- **Why:** The technical test specifically stated this was optional
+- **Trade-off:** No security, but faster delivery of core functionality
+- **Next-step:** Add HTTP Basic Auth or JWT authentication
+
+**2. SQLite Database**
+- **Why:** Simpler setup for reviewers; works out of the box
+- **Trade-off:** Not production-ready for high concurrency
+- **Next-step:** Migrate to PostgreSQL with connection pooling
+
+**3. Synchronous Assessments**
+- **Why:** Simpler to implement and test
+- **Trade-off:** Poor user experience for complex calculations
+- **Next-step:** Background jobs with WebSocket notifications
+
+**4. Manual JSON Serialization**
+- **Why:** Avoided dependency overhead for simple responses
+- **Trade-off:** More tedious to modify response structure
+- **Next-step:** Introduce proper serialization layer as API grows
+
+### What I Left Out Entirely
+
+**1. Comprehensive Error Handling**
+- **Why:** Focused on happy path and basic validation errors
+- **Trade-off:** Poor debugging information for edge cases
+- **Next-step:** Structured error responses with error codes
+
+**2. Pagination and Filtering**
+- **Why:** Single application retrieval meets requirements
+- **Trade-off:** Won't scale to large datasets
+- **Next-step:** Add pagination for assessment history endpoints
+
+**3. Rate Limiting**
+- **Why:** Not specified in requirements
+- **Trade-off:** Vulnerable to DoS attacks
+- **Next-step:** Implement Redis-based rate limiting
+
+### 1-2 Week Prioritisation
+
+**Week 1: Production Readiness**
+1. **Authentication** (Priority: Critical)
+   - Add HTTP Basic Auth or JWT
+   - User model with roles (applicant, admin, underwriter)
+
+2. **Database Hardening** (Priority: High)
+   - Migration to PostgreSQL
+   - Database constraints for all business rules
+   - Connection pooling configuration
+
+3. **Background Jobs** (Priority: High)
+   - ActiveJob integration
+   - Async assessment processing
+   - Job monitoring and retry logic
+
+**Week 2: Enhanced Features**
+4. **Rules Engine** (Priority: Medium)
+   - Database-driven affordability rules
+   - Admin interface for rule management
+   - Rule versioning and auditing
+
+5. **Monitoring** (Priority: Medium)
+   - Structured logging implementation
+   - Performance metrics collection
+   - Basic alerting setup
+
+6. **API Enhancements** (Priority: Low)
+   - Assessment history endpoint
+   - Pagination support
+   - API documentation (OpenAPI/Swagger)
+
+### Key Technical Debt
+
+**1. Business Logic Coupling**
+- **Issue:** Affordability rules are scattered across model and service
+- **Impact:** Hard to modify rules without touching multiple files
+- **Solution:** Extract to a dedicated rules engine module
+
+**2. Error Handling Inconsistency**
+- **Issue:** Some endpoints return different error formats
+- **Impact:** Poor API client experience
+- **Solution:** Standardized error response wrapper
+
+**3. Missing Database Constraints**
+- **Issue:** Business rules only validated at model level
+- **Impact:** Data integrity risks from raw SQL or other models
+- **Solution:** Add CHECK constraints and database validations
+
+This implementation focuses on delivering a solid foundation that can evolve into a production mortgage platform. The architecture supports growth while maintaining the simplicity required for the technical exercise.
