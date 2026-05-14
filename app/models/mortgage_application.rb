@@ -7,6 +7,8 @@ class MortgageApplication < ApplicationRecord
   validates :property_value, presence: true, numericality: { greater_than: 0 }
   validates :term, presence: true, numericality: { only_integer: true, greater_than: 0 }
 
+  validate :deposit_must_not_exceed_property_value
+
   def loan_amount
     property_value - deposit_amount
   end
@@ -23,5 +25,15 @@ class MortgageApplication < ApplicationRecord
   def debt_to_income_ratio
     return 0 if annual_income.zero?
     (annual_expenses / annual_income) * 100
+  end
+
+  private
+
+  def deposit_must_not_exceed_property_value
+    return if deposit_amount.blank? || property_value.blank?
+    
+    if deposit_amount > property_value
+      errors.add(:deposit_amount, "must not exceed property value")
+    end
   end
 end
