@@ -29,21 +29,9 @@ class AffordabilityAssessor
   private
 
   def calculate_affordability_metrics
-    @ltv = calculate_ltv
-    @debt_to_income_ratio = calculate_debt_to_income_ratio
+    @ltv = mortgage_application.loan_to_value
+    @debt_to_income_ratio = mortgage_application.debt_to_income_ratio
     @max_borrowing_estimate = calculate_max_borrowing
-  end
-
-  def calculate_ltv
-    loan_amount = mortgage_application.property_value - mortgage_application.deposit_amount
-    return 0 if mortgage_application.property_value.zero?
-    (loan_amount / mortgage_application.property_value) * 100
-  end
-
-  def calculate_debt_to_income_ratio
-    annual_expenses = mortgage_application.monthly_expenses * 12
-    return 0 if mortgage_application.annual_income.zero?
-    (annual_expenses / mortgage_application.annual_income) * 100
   end
 
   def calculate_max_borrowing
