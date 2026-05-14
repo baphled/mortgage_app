@@ -56,11 +56,11 @@ class Api::V1::MortgageApplicationsController < ApplicationController
   def serialize_mortgage_application(application)
     {
       id: application.id,
-      annual_income: application.annual_income,
-      monthly_expenses: application.monthly_expenses,
-      deposit_amount: application.deposit_amount,
-      property_value: application.property_value,
-      term: application.term,
+      annual_income: application.annual_income.to_f,
+      monthly_expenses: application.monthly_expenses.to_f,
+      deposit_amount: application.deposit_amount.to_f,
+      property_value: application.property_value.to_f,
+      term: application.term.to_i,
       created_at: application.created_at,
       updated_at: application.updated_at
     }
@@ -70,10 +70,10 @@ class Api::V1::MortgageApplicationsController < ApplicationController
     {
       id: assessment.id,
       mortgage_application_id: assessment.mortgage_application_id,
-      loan_to_value: assessment.loan_to_value,
-      debt_to_income_ratio: assessment.debt_to_income_ratio,
+      loan_to_value: assessment.loan_to_value.to_f,
+      debt_to_income_ratio: assessment.debt_to_income_ratio.to_f,
       decision: assessment.decision,
-      max_borrowing_estimate: assessment.max_borrowing_estimate,
+      max_borrowing_estimate: assessment.max_borrowing_estimate.to_f,
       explanation: assessment.explanation,
       created_at: assessment.created_at,
       updated_at: assessment.updated_at
