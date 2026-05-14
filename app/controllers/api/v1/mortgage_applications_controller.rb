@@ -15,8 +15,6 @@ class Api::V1::MortgageApplicationsController < ApplicationController
   def show
     @mortgage_application = MortgageApplication.find(params[:id])
     render json: serialize_mortgage_application(@mortgage_application)
-  rescue ActiveRecord::RecordNotFound
-    render json: { error: 'Mortgage application not found' }, status: :not_found
   end
 
   def affordability_assessment
@@ -33,8 +31,6 @@ class Api::V1::MortgageApplicationsController < ApplicationController
     )
     
     render json: serialize_affordability_assessment(@affordability_assessment), status: :created
-  rescue ActiveRecord::RecordNotFound
-    render json: { error: 'Mortgage application not found' }, status: :not_found
   rescue ActiveRecord::RecordInvalid => e
     render json: { 
       error: 'Assessment validation failed',
