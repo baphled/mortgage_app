@@ -19,7 +19,7 @@ Rails.application.configure do
   config.public_file_server.headers = { "cache-control" => "public, max-age=3600" }
 
   # Show full error reports.
-  config.consider_all_requests_local = true
+  config.consider_all_requests_local = false
   config.cache_store = :null_store
 
   # Render exception templates for rescuable exceptions and raise for other exceptions.
@@ -42,7 +42,7 @@ Rails.application.configure do
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
 
-  # Annotate rendered view with file names.
+  # Annotate rendered view with filenames.
   # config.action_view.annotate_rendered_view_with_filenames = true
 
   # Raise error when a before_action's only/except options reference missing actions.

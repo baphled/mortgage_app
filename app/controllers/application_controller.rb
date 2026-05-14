@@ -5,7 +5,8 @@ class ApplicationController < ActionController::API
 
   private
 
-  def not_found
+  def not_found(exception = nil)
+    Rails.logger.error("NOT_FOUND: #{exception.class} - #{exception.message}") if exception
     render json: { error: 'Resource not found' }, status: :not_found
   end
 
@@ -17,11 +18,17 @@ class ApplicationController < ActionController::API
   end
 
   def internal_server_error(exception)
-    Rails.logger.error(exception.message)
+    Rails.logger.error("INTERNAL_SERVER_ERROR: #{exception.class} - #{exception.message}")
     Rails.logger.error(exception.backtrace.join("\n"))
     
-    render json: { 
-      error: 'Internal server error' 
-    }, status: :internal_server_error
+    # For RecordNotFound, it should have been caught by the rescue_from above
+    # If we get here, something is wrong with the exception handling
+    if exception.is_a?(ActiveRecord::RecordNotFound)
+      render json: { error: 'Resource not found' }, status: :not_found
+    else
+      render json: { 
+        error: 'Internal server error' 
+      }, status: :internal_server_error
+    end
   end
 end
