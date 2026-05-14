@@ -152,38 +152,63 @@ curl -X POST http://localhost:3000/api/v1/mortgage_applications/1/affordability_
   "decision": "declined",
   "max_borrowing_estimate": 656250.0,
   "explanation": "Application declined: LTV ratio (90.0%) exceeds maximum of 80%.",
-  "created_at": "2026-05-14T16:38:00.000Z",
-  "updated_at": "2026-05-14T16:38:00.000Z"
-}
-```
+## Key Design Decisions
 
-**Error Response (404):**
-```json
-{
-  "error": "Mortgage application not found"
-}
-```
+### 1. Service Object Pattern for Business Logic
 
-## How to Run Tests
+**Decision:** Extracted affordability calculation logic into a dedicated `AffordabilityAssessor` service object.
 
-Run the complete test suite:
+**Why:**
+- **Separation of Concerns:** Keeps business rules out of controllers and models
+- **Testability:** Pure Ruby objects are easier to unit test in isolation
+- **Reusability:** The service can be called from controllers, background jobs, or console
+- **Maintainability:** Business rules change frequently; having them in one place reduces duplication
 
-```bash
-bundle exec rspec
-```
+**Alternatives Considered:**
+- **Model callbacks:** Would tightly couple business logic to persistence lifecycle events, making it harder to test rules independently
+- **Controller methods:** Would make controllers fat and harder to test, violating single responsibility principle
+- **Concerns:** Would mix business logic with model behavior, creating unclear boundaries between domain and persistence logic
 
-Run specific test types:
+**Trade-offs Accepted:**
+- Additional class vs. putting logic in existing classes (worth it for separation)
+- Slightly more code organization vs. having everything in one place (scales better)
 
-```bash
-# Model tests
-bundle exec rspec spec/models/
+### 2. API Versioning with Namespacing
 
-# Request/integration tests
-bundle exec rspec spec/requests/
+**Decision:** Implemented API endpoints under `/api/v1/` namespace.
 
-# Service tests
-bundle exec rspec spec/services/
-```
+**Why:**
+- **Future Evolution:** Enables introducing v2 changes without breaking existing clients
+- **Clear Contract:** Explicit version communicates stability expectations to API consumers
+- **Routing Organization:** Separates API routes from potential web interface routes
+
+**Alternatives Considered:**
+- **No versioning:** Simpler initially but creates breaking changes for all consumers
+- **Header-based versioning:** Cleaner URLs but harder to debug and test
+- **Domain-based versioning (v1.example.com):** More isolated but requires additional DNS configuration
+
+**Trade-offs Accepted:**
+- Slightly more verbose URLs vs. root-level endpoints (acceptable for clarity)
+- Additional routing layer vs. flat structure (necessary for evolution)
+
+### 3. Manual JSON Serialization
+
+**Decision:** Implemented manual JSON serialization in controller helper methods rather than using Active Model Serializers.
+
+**Why:**
+- **Simplicity:** The response structures are straightforward and unlikely to change frequently
+- **Performance:** Avoids the overhead of a serialization layer for simple cases
+- **Explicit Control:** Full control over the exact JSON structure returned
+- **Zero Dependencies:** One less gem to maintain and upgrade
+
+**Alternatives Considered:**
+- **Active Model Serializers:** Would provide more features for complex associations but adds overhead
+- **Jbuilder:** Would offer template-based serialization but requires learning a DSL
+- **Rails native `as_json`:** Would use built-in functionality but gives less control over the exact structure
+
+**Trade-offs Accepted:**
+- More manual work for simple responses vs. automated serialization (acceptable for current scope)
+- Will need to revisit if API grows complex (good problem to have later)```
 
 ## Key Design Decisions
 
