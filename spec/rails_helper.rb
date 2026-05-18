@@ -50,9 +50,6 @@ RSpec.configure do |config|
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
 
-  # Include Factory Bot syntax
-  config.include FactoryBot::Syntax::Methods
-
   # Include Shoulda Matchers
   Shoulda::Matchers.configure do |shoulda_config|
     shoulda_config.integrate do |with|

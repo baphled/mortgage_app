@@ -1,7 +1,37 @@
 require 'rails_helper'
 
 RSpec.describe AffordabilityAssessment, type: :model do
-  subject(:affordability_assessment) { build(:affordability_assessment) }
+  def build_application(overrides = {})
+    defaults = {
+      annual_income: 75_000,
+      monthly_expenses: 2_500,
+      deposit_amount: 50_000,
+      property_value: 300_000,
+      term_years: 25
+    }
+    MortgageApplication.new(defaults.merge(overrides))
+  end
+
+  def build_assessment(overrides = {})
+    defaults = {
+      mortgage_application: build_application,
+      loan_to_value: 75.0,
+      debt_to_income_ratio: 35.0,
+      decision: 'approved',
+      max_borrowing_estimate: 250_000,
+      explanation: 'Application meets all affordability criteria'
+    }
+    AffordabilityAssessment.new(defaults.merge(overrides))
+  end
+
+  def create_assessment(overrides = {})
+    assessment = build_assessment(overrides)
+    assessment.mortgage_application.save!
+    assessment.save!
+    assessment
+  end
+
+  subject(:affordability_assessment) { build_assessment }
 
   describe 'associations' do
     it { should belong_to(:mortgage_application) }
@@ -20,8 +50,13 @@ RSpec.describe AffordabilityAssessment, type: :model do
   end
 
   describe 'scopes' do
-    let!(:approved_assessment) { create(:affordability_assessment, decision: 'approved') }
-    let!(:declined_assessment) { create(:affordability_assessment, :declined) }
+    let!(:approved_assessment) { create_assessment(decision: 'approved') }
+    let!(:declined_assessment) do
+      create_assessment(
+        decision: 'declined',
+        explanation: 'Application declined due to high LTV ratio'
+      )
+    end
 
     describe '.approved' do
       it 'includes assessments with the approved decision' do

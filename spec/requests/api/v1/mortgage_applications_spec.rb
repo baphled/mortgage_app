@@ -3,6 +3,21 @@ require 'rails_helper'
 RSpec.describe 'Api::V1::MortgageApplications', type: :request do
   let(:parsed_body) { JSON.parse(response.body) }
 
+  def build_application(overrides = {})
+    defaults = {
+      annual_income: 75_000,
+      monthly_expenses: 2_000,
+      deposit_amount: 60_000,
+      property_value: 300_000,
+      term_years: 25
+    }
+    MortgageApplication.new(defaults.merge(overrides))
+  end
+
+  def create_application(overrides = {})
+    build_application(overrides).tap(&:save!)
+  end
+
   describe 'POST /api/v1/mortgage_applications' do
     let(:valid_params) do
       {
@@ -189,7 +204,7 @@ RSpec.describe 'Api::V1::MortgageApplications', type: :request do
 
   describe 'GET /api/v1/mortgage_applications/:id' do
     context 'when the record exists' do
-      let!(:application) { create(:mortgage_application) }
+      let!(:application) { create_application }
 
       before { get "/api/v1/mortgage_applications/#{application.id}" }
 
@@ -245,7 +260,7 @@ RSpec.describe 'Api::V1::MortgageApplications', type: :request do
 
   describe 'POST /api/v1/mortgage_applications/:id/affordability_assessment' do
     context 'when the application exists' do
-      let!(:application) { create(:mortgage_application, :approved) }
+      let!(:application) { create_application }
 
       context 'and the assessment is created' do
         before { post "/api/v1/mortgage_applications/#{application.id}/affordability_assessment" }

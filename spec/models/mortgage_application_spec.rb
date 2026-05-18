@@ -1,7 +1,18 @@
 require 'rails_helper'
 
 RSpec.describe MortgageApplication, type: :model do
-  subject(:mortgage_application) { build(:mortgage_application) }
+  def build_application(overrides = {})
+    defaults = {
+      annual_income: 75_000,
+      monthly_expenses: 2_500,
+      deposit_amount: 50_000,
+      property_value: 300_000,
+      term_years: 25
+    }
+    MortgageApplication.new(defaults.merge(overrides))
+  end
+
+  subject(:mortgage_application) { build_application }
 
   describe 'associations' do
     it { should have_many(:affordability_assessments).dependent(:destroy) }
@@ -23,9 +34,7 @@ RSpec.describe MortgageApplication, type: :model do
     describe '#deposit_must_not_exceed_property_value' do
       context 'when the deposit exceeds the property value' do
         let(:application) do
-          build(:mortgage_application,
-                deposit_amount: 300_001,
-                property_value: 300_000)
+          build_application(deposit_amount: 300_001, property_value: 300_000)
         end
 
         before { application.valid? }
@@ -43,9 +52,7 @@ RSpec.describe MortgageApplication, type: :model do
       it 'is valid when the deposit equals the property value' do
         # The validator uses strict `>` rather than `>=`, so deposit == property
         # value is permitted (e.g. a cash purchase with the full price as deposit).
-        application = build(:mortgage_application,
-                            deposit_amount: 300_000,
-                            property_value: 300_000)
+        application = build_application(deposit_amount: 300_000, property_value: 300_000)
 
         application.valid?
         expect(application.errors[:deposit_amount])
@@ -53,9 +60,7 @@ RSpec.describe MortgageApplication, type: :model do
       end
 
       it 'is valid when the deposit is below the property value' do
-        application = build(:mortgage_application,
-                            deposit_amount: 50_000,
-                            property_value: 300_000)
+        application = build_application(deposit_amount: 50_000, property_value: 300_000)
 
         expect(application).to be_valid
       end
@@ -63,12 +68,15 @@ RSpec.describe MortgageApplication, type: :model do
   end
 
   describe 'calculations' do
-    let(:application) { build(:mortgage_application, 
-                              annual_income: 60_000,
-                              monthly_expenses: 1_500,
-                              deposit_amount: 40_000,
-                              property_value: 200_000,
-                              term_years: 20) }
+    let(:application) do
+      build_application(
+        annual_income: 60_000,
+        monthly_expenses: 1_500,
+        deposit_amount: 40_000,
+        property_value: 200_000,
+        term_years: 20
+      )
+    end
 
     describe '#loan_amount' do
       it 'calculates loan amount correctly' do
@@ -97,12 +105,12 @@ RSpec.describe MortgageApplication, type: :model do
 
   describe 'edge cases' do
     it 'handles zero property value gracefully' do
-      application = build(:mortgage_application, property_value: 0)
+      application = build_application(property_value: 0)
       expect(application.loan_to_value).to eq(0)
     end
 
     it 'handles zero annual income gracefully' do
-      application = build(:mortgage_application, annual_income: 0)
+      application = build_application(annual_income: 0)
       expect(application.debt_to_income_ratio).to eq(0)
     end
   end
