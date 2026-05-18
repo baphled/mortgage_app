@@ -12,24 +12,114 @@ RSpec.describe MortgageApplication, type: :model do
     MortgageApplication.new(defaults.merge(overrides))
   end
 
-  subject(:mortgage_application) { build_application }
-
   describe 'associations' do
-    it { should have_many(:affordability_assessments).dependent(:destroy) }
+    it 'destroys dependent affordability assessments' do
+      reflection = MortgageApplication.reflect_on_association(:affordability_assessments)
+      expect(reflection.options[:dependent]).to eq(:destroy)
+    end
+
+    it 'has many affordability assessments' do
+      reflection = MortgageApplication.reflect_on_association(:affordability_assessments)
+      expect(reflection.macro).to eq(:has_many)
+    end
   end
 
   describe 'validations' do
-    it { should validate_presence_of(:annual_income) }
-    it { should validate_numericality_of(:annual_income).is_greater_than(0) }
-    it { should validate_presence_of(:monthly_expenses) }
-    it { should validate_numericality_of(:monthly_expenses).is_greater_than_or_equal_to(0) }
-    it { should validate_presence_of(:deposit_amount) }
-    it { should validate_numericality_of(:deposit_amount).is_greater_than_or_equal_to(0) }
-    it { should validate_presence_of(:property_value) }
-    it { should validate_numericality_of(:property_value).is_greater_than(0) }
-    it { should validate_presence_of(:term_years) }
-    it { should validate_numericality_of(:term_years).only_integer.is_greater_than(0) }
-    it { should validate_numericality_of(:term_years).is_less_than_or_equal_to(50) }
+    it 'is valid with all required attributes' do
+      expect(build_application).to be_valid
+    end
+
+    describe 'annual_income' do
+      it 'is invalid when blank' do
+        application = build_application(annual_income: nil)
+        application.valid?
+        expect(application.errors[:annual_income]).to include("can't be blank")
+      end
+
+      it 'is invalid when zero' do
+        application = build_application(annual_income: 0)
+        application.valid?
+        expect(application.errors[:annual_income]).to include('must be greater than 0')
+      end
+
+      it 'is invalid when negative' do
+        application = build_application(annual_income: -1)
+        expect(application).not_to be_valid
+      end
+    end
+
+    describe 'monthly_expenses' do
+      it 'is invalid when blank' do
+        application = build_application(monthly_expenses: nil)
+        application.valid?
+        expect(application.errors[:monthly_expenses]).to include("can't be blank")
+      end
+
+      it 'is valid when zero' do
+        application = build_application(monthly_expenses: 0)
+        expect(application).to be_valid
+      end
+
+      it 'is invalid when negative' do
+        application = build_application(monthly_expenses: -1)
+        expect(application).not_to be_valid
+      end
+    end
+
+    describe 'deposit_amount' do
+      it 'is invalid when blank' do
+        application = build_application(deposit_amount: nil)
+        application.valid?
+        expect(application.errors[:deposit_amount]).to include("can't be blank")
+      end
+
+      it 'is invalid when negative' do
+        application = build_application(deposit_amount: -1)
+        expect(application).not_to be_valid
+      end
+    end
+
+    describe 'property_value' do
+      it 'is invalid when blank' do
+        application = build_application(property_value: nil)
+        application.valid?
+        expect(application.errors[:property_value]).to include("can't be blank")
+      end
+
+      it 'is invalid when zero' do
+        application = build_application(property_value: 0)
+        application.valid?
+        expect(application.errors[:property_value]).to include('must be greater than 0')
+      end
+    end
+
+    describe 'term_years' do
+      it 'is invalid when blank' do
+        application = build_application(term_years: nil)
+        application.valid?
+        expect(application.errors[:term_years]).to include("can't be blank")
+      end
+
+      it 'is invalid when zero' do
+        application = build_application(term_years: 0)
+        expect(application).not_to be_valid
+      end
+
+      it 'is invalid when greater than 50' do
+        application = build_application(term_years: 51)
+        expect(application).not_to be_valid
+      end
+
+      it 'is invalid when a decimal' do
+        application = build_application(term_years: 25.5)
+        expect(application).not_to be_valid
+      end
+
+      it 'is valid at the maximum of 50' do
+        application = build_application(term_years: 50)
+        expect(application).to be_valid
+      end
+    end
 
     describe '#deposit_must_not_exceed_property_value' do
       context 'when the deposit exceeds the property value' do

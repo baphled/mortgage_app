@@ -31,22 +31,101 @@ RSpec.describe AffordabilityAssessment, type: :model do
     assessment
   end
 
-  subject(:affordability_assessment) { build_assessment }
-
   describe 'associations' do
-    it { should belong_to(:mortgage_application) }
+    it 'belongs to a mortgage application' do
+      reflection = AffordabilityAssessment.reflect_on_association(:mortgage_application)
+      expect(reflection.macro).to eq(:belongs_to)
+    end
   end
 
   describe 'validations' do
-    it { should validate_presence_of(:decision) }
-    it { should validate_inclusion_of(:decision).in_array(%w[approved declined]) }
-    it { should validate_presence_of(:loan_to_value) }
-    it { should validate_numericality_of(:loan_to_value).is_greater_than_or_equal_to(0).is_less_than_or_equal_to(100) }
-    it { should validate_presence_of(:debt_to_income_ratio) }
-    it { should validate_numericality_of(:debt_to_income_ratio).is_greater_than_or_equal_to(0) }
-    it { should validate_presence_of(:max_borrowing_estimate) }
-    it { should validate_numericality_of(:max_borrowing_estimate).is_greater_than_or_equal_to(0) }
-    it { should validate_presence_of(:explanation) }
+    describe 'decision' do
+      it 'is invalid when blank' do
+        assessment = build_assessment(decision: nil)
+        assessment.valid?
+        expect(assessment.errors[:decision]).to include("can't be blank")
+      end
+
+      it 'is invalid when not approved or declined' do
+        assessment = build_assessment(decision: 'pending')
+        expect(assessment).not_to be_valid
+      end
+
+      it 'is valid when approved' do
+        assessment = build_assessment(decision: 'approved')
+        expect(assessment).to be_valid
+      end
+
+      it 'is valid when declined' do
+        assessment = build_assessment(
+          decision: 'declined',
+          explanation: 'Application declined due to high LTV ratio'
+        )
+        expect(assessment).to be_valid
+      end
+    end
+
+    describe 'loan_to_value' do
+      it 'is invalid when blank' do
+        assessment = build_assessment(loan_to_value: nil)
+        assessment.valid?
+        expect(assessment.errors[:loan_to_value]).to include("can't be blank")
+      end
+
+      it 'is invalid when negative' do
+        assessment = build_assessment(loan_to_value: -0.1)
+        expect(assessment).not_to be_valid
+      end
+
+      it 'is invalid when greater than 100' do
+        assessment = build_assessment(loan_to_value: 100.1)
+        expect(assessment).not_to be_valid
+      end
+
+      it 'is valid at 0' do
+        assessment = build_assessment(loan_to_value: 0)
+        expect(assessment).to be_valid
+      end
+
+      it 'is valid at 100' do
+        assessment = build_assessment(loan_to_value: 100)
+        expect(assessment).to be_valid
+      end
+    end
+
+    describe 'debt_to_income_ratio' do
+      it 'is invalid when blank' do
+        assessment = build_assessment(debt_to_income_ratio: nil)
+        assessment.valid?
+        expect(assessment.errors[:debt_to_income_ratio]).to include("can't be blank")
+      end
+
+      it 'is invalid when negative' do
+        assessment = build_assessment(debt_to_income_ratio: -0.1)
+        expect(assessment).not_to be_valid
+      end
+    end
+
+    describe 'max_borrowing_estimate' do
+      it 'is invalid when blank' do
+        assessment = build_assessment(max_borrowing_estimate: nil)
+        assessment.valid?
+        expect(assessment.errors[:max_borrowing_estimate]).to include("can't be blank")
+      end
+
+      it 'is invalid when negative' do
+        assessment = build_assessment(max_borrowing_estimate: -1)
+        expect(assessment).not_to be_valid
+      end
+    end
+
+    describe 'explanation' do
+      it 'is invalid when blank' do
+        assessment = build_assessment(explanation: nil)
+        assessment.valid?
+        expect(assessment.errors[:explanation]).to include("can't be blank")
+      end
+    end
   end
 
   describe 'scopes' do
