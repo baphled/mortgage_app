@@ -90,8 +90,11 @@ RSpec.describe AffordabilityAssessor, type: :service do
         expect(result.decision).to eq('declined')
       end
 
-      it 'explains all failures in explanation' do
+      it 'explains the LTV failure in the explanation' do
         expect(result.explanation).to include('LTV ratio')
+      end
+
+      it 'explains the deposit failure in the explanation' do
         expect(result.explanation).to include('Deposit')
       end
     end
