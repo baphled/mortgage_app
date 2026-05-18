@@ -23,7 +23,7 @@ RSpec.describe AffordabilityAssessor, type: :service do
 
       it 'calculates max borrowing estimate correctly' do
         monthly_income = mortgage_application.annual_income / 12.0
-        expected_max = monthly_income * 0.35 * (mortgage_application.term * 12)
+        expected_max = monthly_income * 0.35 * (mortgage_application.term_years * 12)
         expect(result.max_borrowing_estimate).to be_within(0.01).of(expected_max)
       end
 
@@ -83,7 +83,7 @@ RSpec.describe AffordabilityAssessor, type: :service do
                monthly_expenses: 2_000,
                deposit_amount: 10_000,
                property_value: 200_000,
-               term: 20)
+               term_years: 20)
       end
 
       it 'returns declined decision' do
@@ -103,7 +103,7 @@ RSpec.describe AffordabilityAssessor, type: :service do
                            monthly_expenses: 0,
                            deposit_amount: 1,
                            property_value: 1,
-                           term: 1)
+                           term_years: 1)
         
         result = described_class.new(application).call
         expect(result).to be_a(AffordabilityAssessor::Result)

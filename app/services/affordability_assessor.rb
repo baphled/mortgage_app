@@ -44,7 +44,7 @@ class AffordabilityAssessor
   def calculate_max_borrowing
     monthly_income = mortgage_application.annual_income / 12.0
     # Maximum borrowing: percentage of monthly income over the term
-    monthly_income * MAX_INCOME_MULTIPLE * (mortgage_application.term * 12)
+    monthly_income * MAX_INCOME_MULTIPLE * (mortgage_application.term_years * 12)
   end
 
   def determine_decision

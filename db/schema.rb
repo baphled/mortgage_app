@@ -10,26 +10,27 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 0) do
+ActiveRecord::Schema[8.1].define(version: 3) do
   create_table "affordability_assessments", force: :cascade do |t|
-    t.datetime "created_at", precision: nil, null: false
+    t.datetime "created_at", null: false
     t.decimal "debt_to_income_ratio", precision: 5, scale: 2, null: false
-    t.string "decision", limit: 255, null: false
+    t.string "decision", null: false
     t.text "explanation"
     t.decimal "loan_to_value", precision: 5, scale: 2, null: false
     t.decimal "max_borrowing_estimate", precision: 12, scale: 2, null: false
     t.integer "mortgage_application_id", null: false
-    t.datetime "updated_at", precision: nil, null: false
+    t.datetime "updated_at", null: false
+    t.index ["mortgage_application_id"], name: "index_affordability_assessments_on_mortgage_application_id"
   end
 
   create_table "mortgage_applications", force: :cascade do |t|
     t.decimal "annual_income", precision: 12, scale: 2, null: false
-    t.datetime "created_at", precision: nil, null: false
+    t.datetime "created_at", null: false
     t.decimal "deposit_amount", precision: 12, scale: 2, null: false
     t.decimal "monthly_expenses", precision: 12, scale: 2, null: false
     t.decimal "property_value", precision: 12, scale: 2, null: false
-    t.integer "term", null: false
-    t.datetime "updated_at", precision: nil, null: false
+    t.integer "term_years", null: false
+    t.datetime "updated_at", null: false
   end
 
   add_foreign_key "affordability_assessments", "mortgage_applications"

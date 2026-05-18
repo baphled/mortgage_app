@@ -1,13 +1,13 @@
 class Api::V1::MortgageApplicationsController < ApplicationController
   def create
     @mortgage_application = MortgageApplication.new(mortgage_application_params)
-    
+
     if @mortgage_application.save
       render json: serialize_mortgage_application(@mortgage_application), status: :created
     else
-      render json: { 
+      render json: {
         error: 'Validation failed',
-        details: @mortgage_application.errors.full_messages 
+        details: @mortgage_application.errors.full_messages
       }, status: :unprocessable_content
     end
   end
@@ -20,7 +20,7 @@ class Api::V1::MortgageApplicationsController < ApplicationController
   def affordability_assessment
     @mortgage_application = MortgageApplication.find(params[:id])
     assessment = AffordabilityAssessor.new(@mortgage_application).call
-    
+
     # Save assessment to database
     @affordability_assessment = @mortgage_application.affordability_assessments.create!(
       loan_to_value: assessment.loan_to_value,
@@ -29,12 +29,12 @@ class Api::V1::MortgageApplicationsController < ApplicationController
       max_borrowing_estimate: assessment.max_borrowing_estimate,
       explanation: assessment.explanation
     )
-    
+
     render json: serialize_affordability_assessment(@affordability_assessment), status: :created
   rescue ActiveRecord::RecordInvalid => e
-    render json: { 
+    render json: {
       error: 'Assessment validation failed',
-      details: e.record.errors.full_messages 
+      details: e.record.errors.full_messages
     }, status: :unprocessable_content
   end
 
@@ -47,10 +47,7 @@ class Api::V1::MortgageApplicationsController < ApplicationController
       :deposit_amount,
       :property_value,
       :term_years
-    ).transform_keys do |key|
-      # Convert term_years to term for the model
-      key == 'term_years' ? 'term' : key
-    end
+    )
   end
 
   def serialize_mortgage_application(application)
@@ -60,7 +57,7 @@ class Api::V1::MortgageApplicationsController < ApplicationController
       monthly_expenses: application.monthly_expenses.to_f,
       deposit_amount: application.deposit_amount.to_f,
       property_value: application.property_value.to_f,
-      term: application.term.to_i,
+      term_years: application.term_years.to_i,
       created_at: application.created_at,
       updated_at: application.updated_at
     }

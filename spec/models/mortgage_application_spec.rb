@@ -16,8 +16,8 @@ RSpec.describe MortgageApplication, type: :model do
     it { should validate_numericality_of(:deposit_amount).is_greater_than_or_equal_to(0) }
     it { should validate_presence_of(:property_value) }
     it { should validate_numericality_of(:property_value).is_greater_than(0) }
-    it { should validate_presence_of(:term) }
-    it { should validate_numericality_of(:term).only_integer.is_greater_than(0) }
+    it { should validate_presence_of(:term_years) }
+    it { should validate_numericality_of(:term_years).only_integer.is_greater_than(0) }
   end
 
   describe 'calculations' do
@@ -26,7 +26,7 @@ RSpec.describe MortgageApplication, type: :model do
                               monthly_expenses: 1_500,
                               deposit_amount: 40_000,
                               property_value: 200_000,
-                              term: 20) }
+                              term_years: 20) }
 
     describe '#loan_amount' do
       it 'calculates loan amount correctly' do
