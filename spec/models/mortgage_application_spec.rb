@@ -18,6 +18,47 @@ RSpec.describe MortgageApplication, type: :model do
     it { should validate_numericality_of(:property_value).is_greater_than(0) }
     it { should validate_presence_of(:term_years) }
     it { should validate_numericality_of(:term_years).only_integer.is_greater_than(0) }
+
+    describe '#deposit_must_not_exceed_property_value' do
+      context 'when the deposit exceeds the property value' do
+        let(:application) do
+          build(:mortgage_application,
+                deposit_amount: 300_001,
+                property_value: 300_000)
+        end
+
+        before { application.valid? }
+
+        it 'is not valid' do
+          expect(application).not_to be_valid
+        end
+
+        it 'records the cross-field error on deposit_amount' do
+          expect(application.errors[:deposit_amount])
+            .to include('must not exceed property value')
+        end
+      end
+
+      it 'is valid when the deposit equals the property value' do
+        # The validator uses strict `>` rather than `>=`, so deposit == property
+        # value is permitted (e.g. a cash purchase with the full price as deposit).
+        application = build(:mortgage_application,
+                            deposit_amount: 300_000,
+                            property_value: 300_000)
+
+        application.valid?
+        expect(application.errors[:deposit_amount])
+          .not_to include('must not exceed property value')
+      end
+
+      it 'is valid when the deposit is below the property value' do
+        application = build(:mortgage_application,
+                            deposit_amount: 50_000,
+                            property_value: 300_000)
+
+        expect(application).to be_valid
+      end
+    end
   end
 
   describe 'calculations' do
