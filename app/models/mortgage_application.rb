@@ -35,7 +35,7 @@ class MortgageApplication < ApplicationRecord
 
   def deposit_must_not_exceed_property_value
     return if deposit_amount.blank? || property_value.blank?
-    
+
     if deposit_amount > property_value
       errors.add(:deposit_amount, "must not exceed property value")
     end

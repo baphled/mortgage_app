@@ -10,10 +10,10 @@ class AffordabilityAssessor
 
   # Result struct to hold assessment data
   Result = Struct.new(
-    :loan_to_value, 
-    :debt_to_income_ratio, 
-    :decision, 
-    :max_borrowing_estimate, 
+    :loan_to_value,
+    :debt_to_income_ratio,
+    :decision,
+    :max_borrowing_estimate,
     :explanation,
     keyword_init: true
   ) do
@@ -67,15 +67,15 @@ class AffordabilityAssessor
 
   def generate_explanation
     reasons = []
-    
+
     unless ltv_approved?
       reasons << "LTV ratio (#{@ltv.round(2)}%) exceeds maximum of #{MAX_LTV_PERCENT}%"
     end
-    
+
     unless debt_to_income_approved?
       reasons << "Debt-to-income ratio (#{@debt_to_income_ratio.round(2)}%) exceeds maximum of #{MAX_DTI_PERCENT}%"
     end
-    
+
     unless deposit_approved?
       minimum_deposit = mortgage_application.property_value * (MIN_DEPOSIT_PERCENT / 100.0)
       reasons << "Deposit (#{format_currency(mortgage_application.deposit_amount)}) is less than minimum required #{format_currency(minimum_deposit)}"
@@ -99,6 +99,6 @@ class AffordabilityAssessor
   end
 
   def format_currency(amount)
-    format('%.2f', amount)
+    format("%.2f", amount)
   end
 end

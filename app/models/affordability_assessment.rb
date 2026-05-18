@@ -1,7 +1,7 @@
 class AffordabilityAssessment < ApplicationRecord
   DECISIONS = {
-    approved: 'approved',
-    declined: 'declined'
+    approved: "approved",
+    declined: "declined"
   }.freeze
 
   belongs_to :mortgage_application

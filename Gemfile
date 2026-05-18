@@ -42,11 +42,11 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 
   # RSpec testing framework
-  gem 'rspec-rails', '~> 7.0'
-  
+  gem "rspec-rails", "~> 7.0"
+
   # Factory for test data
   gem "factory_bot_rails", "~> 6.5"
-  
+
   # Shoulda matchers for RSpec
   gem "shoulda-matchers", "~> 7.0"
 end

@@ -6,7 +6,7 @@ class Api::V1::MortgageApplicationsController < ApplicationController
       render json: serialize_mortgage_application(@mortgage_application), status: :created
     else
       render json: {
-        error: 'Validation failed',
+        error: "Validation failed",
         details: @mortgage_application.errors.full_messages
       }, status: :unprocessable_entity
     end
@@ -16,7 +16,7 @@ class Api::V1::MortgageApplicationsController < ApplicationController
     @mortgage_application = MortgageApplication.find(params[:id])
     render json: serialize_mortgage_application(@mortgage_application)
   rescue ActiveRecord::RecordNotFound
-    render json: { error: 'Mortgage application not found' }, status: :not_found
+    render json: { error: "Mortgage application not found" }, status: :not_found
   end
 
   def affordability_assessment
@@ -34,10 +34,10 @@ class Api::V1::MortgageApplicationsController < ApplicationController
 
     render json: serialize_affordability_assessment(@affordability_assessment), status: :created
   rescue ActiveRecord::RecordNotFound
-    render json: { error: 'Mortgage application not found' }, status: :not_found
+    render json: { error: "Mortgage application not found" }, status: :not_found
   rescue ActiveRecord::RecordInvalid => e
     render json: {
-      error: 'Assessment validation failed',
+      error: "Assessment validation failed",
       details: e.record.errors.full_messages
     }, status: :unprocessable_entity
   end
@@ -58,7 +58,7 @@ class Api::V1::MortgageApplicationsController < ApplicationController
     {
       data: {
         id: application.id,
-        type: 'mortgage_application',
+        type: "mortgage_application",
         attributes: {
           annual_income: application.annual_income.to_f,
           monthly_expenses: application.monthly_expenses.to_f,
@@ -76,7 +76,7 @@ class Api::V1::MortgageApplicationsController < ApplicationController
     {
       data: {
         id: assessment.id,
-        type: 'affordability_assessment',
+        type: "affordability_assessment",
         attributes: {
           mortgage_application_id: assessment.mortgage_application_id,
           loan_to_value: assessment.loan_to_value.to_f,
