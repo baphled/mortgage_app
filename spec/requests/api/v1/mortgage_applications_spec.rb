@@ -109,6 +109,46 @@ RSpec.describe 'Api::V1::MortgageApplications', type: :request do
       end
     end
 
+    context 'when the mortgage_application root key is missing' do
+      before do
+        post '/api/v1/mortgage_applications',
+             params: { annual_income: 75_000 },
+             as: :json
+      end
+
+      it 'returns a 4xx client error rather than crashing' do
+        expect(response.status).to be_between(400, 499)
+      end
+
+      it 'does not persist any record' do
+        expect(MortgageApplication.count).to eq(0)
+      end
+    end
+
+    context 'when annual_income is negative' do
+      let(:negative_income_params) do
+        {
+          mortgage_application: {
+            annual_income: -1,
+            monthly_expenses: 2_000,
+            deposit_amount: 60_000,
+            property_value: 300_000,
+            term_years: 25
+          }
+        }
+      end
+
+      before { post '/api/v1/mortgage_applications', params: negative_income_params, as: :json }
+
+      it 'returns 422 Unprocessable Entity' do
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'reports the annual_income validation error' do
+        expect(parsed_body['details']).to include(a_string_matching(/Annual income/))
+      end
+    end
+
     context 'when deposit exceeds property value' do
       let(:invalid_params) do
         {

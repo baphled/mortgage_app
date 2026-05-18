@@ -18,6 +18,7 @@ RSpec.describe MortgageApplication, type: :model do
     it { should validate_numericality_of(:property_value).is_greater_than(0) }
     it { should validate_presence_of(:term_years) }
     it { should validate_numericality_of(:term_years).only_integer.is_greater_than(0) }
+    it { should validate_numericality_of(:term_years).is_less_than_or_equal_to(50) }
 
     describe '#deposit_must_not_exceed_property_value' do
       context 'when the deposit exceeds the property value' do
