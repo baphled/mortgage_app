@@ -37,7 +37,7 @@ Create a new mortgage application.
   "monthly_expenses": 2000.0,
   "deposit_amount": 60000.0,
   "property_value": 300000.0,
-  "term": 25,
+  "term_years": 25,
   "created_at": "2026-05-14T16:27:14.008Z",
   "updated_at": "2026-05-14T16:27:14.008Z"
 }
@@ -54,7 +54,7 @@ Retrieve a mortgage application by ID.
   "monthly_expenses": 2000.0,
   "deposit_amount": 60000.0,
   "property_value": 300000.0,
-  "term": 25,
+  "term_years": 25,
   "created_at": "2026-05-14T16:27:14.008Z",
   "updated_at": "2026-05-14T16:27:14.008Z"
 }
@@ -181,7 +181,7 @@ curl -X POST http://localhost:3000/api/v1/mortgage_applications \
     "monthly_expenses": 1500.0,
     "deposit_amount": 50000.0,
     "property_value": 250000.0,
-    "term": 25,
+    "term_years": 25,
     "created_at": "2026-05-14T16:47:19.567Z",
     "updated_at": "2026-05-14T16:47:19.567Z"
 }
@@ -201,7 +201,7 @@ curl http://localhost:3000/api/v1/mortgage_applications/1
     "monthly_expenses": 1500.0,
     "deposit_amount": 50000.0,
     "property_value": 250000.0,
-    "term": 25,
+    "term_years": 25,
     "created_at": "2026-05-14T16:47:19.567Z",
     "updated_at": "2026-05-14T16:47:19.567Z"
 }
@@ -235,10 +235,10 @@ curl -X POST http://localhost:3000/api/v1/mortgage_applications/1/affordability_
 curl http://localhost:3000/api/v1/mortgage_applications/9999
 ```
 
-**Response (500 Internal Server Error):**
+**Response (404 Not Found):**
 ```json
 {
-    "error": "Internal server error"
+    "error": "Resource not found"
 }
 ```
 
@@ -749,7 +749,7 @@ class AffordabilityAssessor
 
   def calculate_max_borrowing
     monthly_income = @mortgage_application.annual_income / 12
-    monthly_income * 0.35 * (@mortgage_application.term * 12)
+    monthly_income * 0.35 * (@mortgage_application.term_years * 12)
   end
 end
 ```
