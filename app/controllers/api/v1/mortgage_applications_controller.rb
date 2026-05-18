@@ -8,7 +8,7 @@ class Api::V1::MortgageApplicationsController < ApplicationController
       render json: {
         error: 'Validation failed',
         details: @mortgage_application.errors.full_messages
-      }, status: :unprocessable_content
+      }, status: :unprocessable_entity
     end
   end
 
