@@ -18,7 +18,7 @@ class AffordabilityAssessor
     keyword_init: true
   ) do
     def approved?
-      decision == 'approved'
+      decision == AffordabilityAssessment::DECISIONS[:approved]
     end
   end
 
@@ -49,7 +49,7 @@ class AffordabilityAssessor
 
   def determine_decision
     @approved = ltv_approved? && debt_to_income_approved? && deposit_approved?
-    @decision = @approved ? 'approved' : 'declined'
+    @decision = @approved ? AffordabilityAssessment::DECISIONS[:approved] : AffordabilityAssessment::DECISIONS[:declined]
   end
 
   def ltv_approved?
