@@ -56,28 +56,38 @@ class Api::V1::MortgageApplicationsController < ApplicationController
 
   def serialize_mortgage_application(application)
     {
-      id: application.id,
-      annual_income: application.annual_income.to_f,
-      monthly_expenses: application.monthly_expenses.to_f,
-      deposit_amount: application.deposit_amount.to_f,
-      property_value: application.property_value.to_f,
-      term_years: application.term_years.to_i,
-      created_at: application.created_at,
-      updated_at: application.updated_at
+      data: {
+        id: application.id,
+        type: 'mortgage_application',
+        attributes: {
+          annual_income: application.annual_income.to_f,
+          monthly_expenses: application.monthly_expenses.to_f,
+          deposit_amount: application.deposit_amount.to_f,
+          property_value: application.property_value.to_f,
+          term_years: application.term_years.to_i,
+          created_at: application.created_at,
+          updated_at: application.updated_at
+        }
+      }
     }
   end
 
   def serialize_affordability_assessment(assessment)
     {
-      id: assessment.id,
-      mortgage_application_id: assessment.mortgage_application_id,
-      loan_to_value: assessment.loan_to_value.to_f,
-      debt_to_income_ratio: assessment.debt_to_income_ratio.to_f,
-      decision: assessment.decision,
-      max_borrowing_estimate: assessment.max_borrowing_estimate.to_f,
-      explanation: assessment.explanation,
-      created_at: assessment.created_at,
-      updated_at: assessment.updated_at
+      data: {
+        id: assessment.id,
+        type: 'affordability_assessment',
+        attributes: {
+          mortgage_application_id: assessment.mortgage_application_id,
+          loan_to_value: assessment.loan_to_value.to_f,
+          debt_to_income_ratio: assessment.debt_to_income_ratio.to_f,
+          decision: assessment.decision,
+          max_borrowing_estimate: assessment.max_borrowing_estimate.to_f,
+          explanation: assessment.explanation,
+          created_at: assessment.created_at,
+          updated_at: assessment.updated_at
+        }
+      }
     }
   end
 end

@@ -31,36 +31,44 @@ RSpec.describe 'Api::V1::MortgageApplications', type: :request do
       context 'response body' do
         before { post '/api/v1/mortgage_applications', params: valid_params, as: :json }
 
+        it 'wraps the payload in a data envelope' do
+          expect(parsed_body).to have_key('data')
+        end
+
+        it 'identifies the resource type as mortgage_application' do
+          expect(parsed_body['data']['type']).to eq('mortgage_application')
+        end
+
         it 'includes a numeric id' do
-          expect(parsed_body['id']).to be_a(Integer)
+          expect(parsed_body['data']['id']).to be_a(Integer)
         end
 
         it 'echoes the annual_income as a number' do
-          expect(parsed_body['annual_income']).to eq(75_000.0)
+          expect(parsed_body['data']['attributes']['annual_income']).to eq(75_000.0)
         end
 
         it 'echoes the monthly_expenses as a number' do
-          expect(parsed_body['monthly_expenses']).to eq(2_000.0)
+          expect(parsed_body['data']['attributes']['monthly_expenses']).to eq(2_000.0)
         end
 
         it 'echoes the deposit_amount as a number' do
-          expect(parsed_body['deposit_amount']).to eq(60_000.0)
+          expect(parsed_body['data']['attributes']['deposit_amount']).to eq(60_000.0)
         end
 
         it 'echoes the property_value as a number' do
-          expect(parsed_body['property_value']).to eq(300_000.0)
+          expect(parsed_body['data']['attributes']['property_value']).to eq(300_000.0)
         end
 
         it 'echoes the term_years as an integer' do
-          expect(parsed_body['term_years']).to eq(25)
+          expect(parsed_body['data']['attributes']['term_years']).to eq(25)
         end
 
         it 'includes a created_at timestamp' do
-          expect(parsed_body).to have_key('created_at')
+          expect(parsed_body['data']['attributes']).to have_key('created_at')
         end
 
         it 'includes an updated_at timestamp' do
-          expect(parsed_body).to have_key('updated_at')
+          expect(parsed_body['data']['attributes']).to have_key('updated_at')
         end
       end
     end
@@ -189,28 +197,32 @@ RSpec.describe 'Api::V1::MortgageApplications', type: :request do
         expect(response).to have_http_status(:ok)
       end
 
+      it 'identifies the resource type as mortgage_application' do
+        expect(parsed_body['data']['type']).to eq('mortgage_application')
+      end
+
       it 'returns the matching id' do
-        expect(parsed_body['id']).to eq(application.id)
+        expect(parsed_body['data']['id']).to eq(application.id)
       end
 
       it 'returns the annual_income as a number' do
-        expect(parsed_body['annual_income']).to eq(application.annual_income.to_f)
+        expect(parsed_body['data']['attributes']['annual_income']).to eq(application.annual_income.to_f)
       end
 
       it 'returns the monthly_expenses as a number' do
-        expect(parsed_body['monthly_expenses']).to eq(application.monthly_expenses.to_f)
+        expect(parsed_body['data']['attributes']['monthly_expenses']).to eq(application.monthly_expenses.to_f)
       end
 
       it 'returns the deposit_amount as a number' do
-        expect(parsed_body['deposit_amount']).to eq(application.deposit_amount.to_f)
+        expect(parsed_body['data']['attributes']['deposit_amount']).to eq(application.deposit_amount.to_f)
       end
 
       it 'returns the property_value as a number' do
-        expect(parsed_body['property_value']).to eq(application.property_value.to_f)
+        expect(parsed_body['data']['attributes']['property_value']).to eq(application.property_value.to_f)
       end
 
       it 'returns the term_years as an integer' do
-        expect(parsed_body['term_years']).to eq(application.term_years)
+        expect(parsed_body['data']['attributes']['term_years']).to eq(application.term_years)
       end
     end
 
@@ -242,40 +254,44 @@ RSpec.describe 'Api::V1::MortgageApplications', type: :request do
           expect(response).to have_http_status(:created)
         end
 
+        it 'identifies the resource type as affordability_assessment' do
+          expect(parsed_body['data']['type']).to eq('affordability_assessment')
+        end
+
         it 'includes a numeric id' do
-          expect(parsed_body['id']).to be_a(Integer)
+          expect(parsed_body['data']['id']).to be_a(Integer)
         end
 
         it 'references the mortgage application' do
-          expect(parsed_body['mortgage_application_id']).to eq(application.id)
+          expect(parsed_body['data']['attributes']['mortgage_application_id']).to eq(application.id)
         end
 
         it 'returns the loan_to_value as a number' do
-          expect(parsed_body['loan_to_value']).to be_a(Numeric)
+          expect(parsed_body['data']['attributes']['loan_to_value']).to be_a(Numeric)
         end
 
         it 'returns the debt_to_income_ratio as a number' do
-          expect(parsed_body['debt_to_income_ratio']).to be_a(Numeric)
+          expect(parsed_body['data']['attributes']['debt_to_income_ratio']).to be_a(Numeric)
         end
 
         it 'returns the decision as a string' do
-          expect(parsed_body['decision']).to be_a(String)
+          expect(parsed_body['data']['attributes']['decision']).to be_a(String)
         end
 
         it 'returns the max_borrowing_estimate as a number' do
-          expect(parsed_body['max_borrowing_estimate']).to be_a(Numeric)
+          expect(parsed_body['data']['attributes']['max_borrowing_estimate']).to be_a(Numeric)
         end
 
         it 'returns the explanation as a string' do
-          expect(parsed_body['explanation']).to be_a(String)
+          expect(parsed_body['data']['attributes']['explanation']).to be_a(String)
         end
 
         it 'returns approved for an applicant meeting all criteria' do
-          expect(parsed_body['decision']).to eq(AffordabilityAssessment::DECISIONS[:approved])
+          expect(parsed_body['data']['attributes']['decision']).to eq(AffordabilityAssessment::DECISIONS[:approved])
         end
 
         it 'explains that the applicant meets all affordability criteria' do
-          expect(parsed_body['explanation']).to include('meets all affordability criteria')
+          expect(parsed_body['data']['attributes']['explanation']).to include('meets all affordability criteria')
         end
       end
 
