@@ -32,33 +32,26 @@ Create a new mortgage application.
 **Response (201 Created):**
 ```json
 {
-  "id": 1,
-  "annual_income": 75000.0,
-  "monthly_expenses": 2000.0,
-  "deposit_amount": 60000.0,
-  "property_value": 300000.0,
-  "term_years": 25,
-  "created_at": "2026-05-14T16:27:14.008Z",
-  "updated_at": "2026-05-14T16:27:14.008Z"
+  "data": {
+    "id": 1,
+    "type": "mortgage_application",
+    "attributes": {
+      "annual_income": 75000.0,
+      "monthly_expenses": 2000.0,
+      "deposit_amount": 60000.0,
+      "property_value": 300000.0,
+      "term_years": 25,
+      "created_at": "2026-05-14T16:27:14.008Z",
+      "updated_at": "2026-05-14T16:27:14.008Z"
+    }
+  }
 }
 ```
 
 #### GET /api/v1/mortgage_applications/:id
 Retrieve a mortgage application by ID.
 
-**Response (200 OK):**
-```json
-{
-  "id": 1,
-  "annual_income": 75000.0,
-  "monthly_expenses": 2000.0,
-  "deposit_amount": 60000.0,
-  "property_value": 300000.0,
-  "term_years": 25,
-  "created_at": "2026-05-14T16:27:14.008Z",
-  "updated_at": "2026-05-14T16:27:14.008Z"
-}
-```
+**Response (200 OK):** Same envelope shape as the create response.
 
 #### POST /api/v1/mortgage_applications/:id/affordability_assessment
 Perform affordability assessment on a mortgage application.
@@ -66,15 +59,20 @@ Perform affordability assessment on a mortgage application.
 **Response (201 Created):**
 ```json
 {
-  "id": 1,
-  "mortgage_application_id": 1,
-  "loan_to_value": 80.0,
-  "debt_to_income_ratio": 32.0,
-  "decision": "approved",
-  "max_borrowing_estimate": 656250.0,
-  "explanation": "Application meets all affordability criteria: LTV 80.0% (≤80.0%), debt-to-income 32.0% (≤40.0%), and sufficient deposit.",
-  "created_at": "2026-05-14T16:29:00.116Z",
-  "updated_at": "2026-05-14T16:29:00.116Z"
+  "data": {
+    "id": 1,
+    "type": "affordability_assessment",
+    "attributes": {
+      "mortgage_application_id": 1,
+      "loan_to_value": 80.0,
+      "debt_to_income_ratio": 32.0,
+      "decision": "approved",
+      "max_borrowing_estimate": 656250.0,
+      "explanation": "Application meets all affordability criteria: LTV 80.0% (≤80.0%), debt-to-income 32.0% (≤40.0%), and sufficient deposit.",
+      "created_at": "2026-05-14T16:29:00.116Z",
+      "updated_at": "2026-05-14T16:29:00.116Z"
+    }
+  }
 }
 ```
 
@@ -176,14 +174,19 @@ curl -X POST http://localhost:3000/api/v1/mortgage_applications \
 **Response (201 Created):**
 ```json
 {
-    "id": 1,
-    "annual_income": 75000.0,
-    "monthly_expenses": 1500.0,
-    "deposit_amount": 50000.0,
-    "property_value": 250000.0,
-    "term_years": 25,
-    "created_at": "2026-05-14T16:47:19.567Z",
-    "updated_at": "2026-05-14T16:47:19.567Z"
+    "data": {
+        "id": 1,
+        "type": "mortgage_application",
+        "attributes": {
+            "annual_income": 75000.0,
+            "monthly_expenses": 1500.0,
+            "deposit_amount": 50000.0,
+            "property_value": 250000.0,
+            "term_years": 25,
+            "created_at": "2026-05-14T16:47:19.567Z",
+            "updated_at": "2026-05-14T16:47:19.567Z"
+        }
+    }
 }
 ```
 
@@ -196,14 +199,19 @@ curl http://localhost:3000/api/v1/mortgage_applications/1
 **Response (200 OK):**
 ```json
 {
-    "id": 1,
-    "annual_income": 75000.0,
-    "monthly_expenses": 1500.0,
-    "deposit_amount": 50000.0,
-    "property_value": 250000.0,
-    "term_years": 25,
-    "created_at": "2026-05-14T16:47:19.567Z",
-    "updated_at": "2026-05-14T16:47:19.567Z"
+    "data": {
+        "id": 1,
+        "type": "mortgage_application",
+        "attributes": {
+            "annual_income": 75000.0,
+            "monthly_expenses": 1500.0,
+            "deposit_amount": 50000.0,
+            "property_value": 250000.0,
+            "term_years": 25,
+            "created_at": "2026-05-14T16:47:19.567Z",
+            "updated_at": "2026-05-14T16:47:19.567Z"
+        }
+    }
 }
 ```
 
@@ -216,15 +224,20 @@ curl -X POST http://localhost:3000/api/v1/mortgage_applications/1/affordability_
 **Response (201 Created):**
 ```json
 {
-    "id": 1,
-    "mortgage_application_id": 1,
-    "loan_to_value": 80.0,
-    "debt_to_income_ratio": 24.0,
-    "decision": "approved",
-    "max_borrowing_estimate": 656250.0,
-    "explanation": "Application meets all affordability criteria: LTV 80.0% (≤80.0%), debt-to-income 24.0% (≤40.0%), and sufficient deposit.",
-    "created_at": "2026-05-14T16:47:25.815Z",
-    "updated_at": "2026-05-14T16:47:25.815Z"
+    "data": {
+        "id": 1,
+        "type": "affordability_assessment",
+        "attributes": {
+            "mortgage_application_id": 1,
+            "loan_to_value": 80.0,
+            "debt_to_income_ratio": 24.0,
+            "decision": "approved",
+            "max_borrowing_estimate": 656250.0,
+            "explanation": "Application meets all affordability criteria: LTV 80.0% (≤80.0%), debt-to-income 24.0% (≤40.0%), and sufficient deposit.",
+            "created_at": "2026-05-14T16:47:25.815Z",
+            "updated_at": "2026-05-14T16:47:25.815Z"
+        }
+    }
 }
 ```
 
@@ -238,7 +251,7 @@ curl http://localhost:3000/api/v1/mortgage_applications/9999
 **Response (404 Not Found):**
 ```json
 {
-    "error": "Resource not found"
+    "error": "Mortgage application not found"
 }
 ```
 
@@ -261,15 +274,19 @@ curl -X POST http://localhost:3000/api/v1/mortgage_applications \
         "Deposit amount is not a number",
         "Property value can't be blank",
         "Property value is not a number",
-        "Term can't be blank",
-        "Term is not a number"
+        "Term years can't be blank",
+        "Term years is not a number"
     ]
 }
 ```
 
-## Key Design Decisions
+---
 
-### 1. Service Object Pattern for Business Logic
+## Design & Reflection
+
+### 1. Key Design Decisions
+
+#### Service Object Pattern for Business Logic
 I chose to implement the affordability assessment logic using a service object (`AffordabilityAssessor`) rather than placing it in the model or controller. This decision provides:
 
 - **Clear separation of concerns**: Business logic is isolated from persistence and presentation concerns
@@ -279,7 +296,7 @@ I chose to implement the affordability assessment logic using a service object (
 
 The `AffordabilityAssessor` follows a simple interface with a `call` method that returns a result object, making it easy to understand and use.
 
-### 2. Versioned API Structure
+#### Versioned API Structure
 I implemented a versioned API structure (`Api::V1`) for the following reasons:
 
 - **Future-proofing**: Allows for breaking changes in future versions without affecting existing clients
@@ -289,7 +306,7 @@ I implemented a versioned API structure (`Api::V1`) for the following reasons:
 
 The versioning is implemented using Rails namespaces, which is a standard and well-understood pattern in the Rails ecosystem.
 
-### 3. Comprehensive Error Handling Strategy
+#### Comprehensive Error Handling Strategy
 I designed a comprehensive error handling strategy that covers:
 
 - **Validation errors**: Proper 422 responses with detailed error messages
@@ -299,18 +316,18 @@ I designed a comprehensive error handling strategy that covers:
 
 This approach ensures that API clients receive meaningful feedback and can handle errors appropriately. The error handling is centralized in the `ApplicationController` to maintain consistency across all endpoints.
 
-## System Evolution
+### 2. System Evolution
 
-### Current Implementation
+#### Current Implementation
 The current implementation is a monolithic Rails API with all components contained within a single application:
 - Web API layer
 - Business logic layer
 - Data persistence layer
 - Background processing (if needed)
 
-### Production Evolution Plan
+#### Production Evolution Plan
 
-#### System Boundaries
+##### System Boundaries
 For a production mortgage platform, I would evolve the system into a microservices architecture with clear boundaries:
 
 **Core Mortgage Service (this API)**
@@ -324,7 +341,7 @@ For a production mortgage platform, I would evolve the system into a microservic
 4. **Notification Service**: Handles email, SMS, and push notifications
 5. **Reporting Service**: Provides analytics and reporting capabilities
 
-#### Handling Increased Load
+##### Handling Increased Load
 To handle increased load in a production environment:
 
 1. **Database Optimization**
@@ -347,7 +364,7 @@ To handle increased load in a production environment:
    - Deploy to Kubernetes for orchestration
    - Implement auto-scaling based on traffic patterns
 
-#### Introducing Asynchronous Processing
+##### Introducing Asynchronous Processing
 The affordability assessment process would benefit from asynchronous processing:
 
 1. **Immediate Response Enhancement**
@@ -377,9 +394,9 @@ The affordability assessment process would benefit from asynchronous processing:
    - Allow clients to register webhooks for assessment completion
    - Provide payload security verification
 
-## Operational Considerations
+### 3. Operational Considerations
 
-### Failure Handling
+#### Failure Handling
 To ensure system reliability in production:
 
 1. **Circuit Breakers**
@@ -398,7 +415,7 @@ To ensure system reliability in production:
    - When under heavy load, prioritize core mortgage application functionality
    - Temporarily disable non-critical features
 
-### Monitoring and Observability
+#### Monitoring and Observability
 Production-grade monitoring requires:
 
 1. **Application Metrics**
@@ -420,7 +437,7 @@ Production-grade monitoring requires:
    - Log key business events with relevant context
    - Ensure logs are searchable and have appropriate retention
 
-### Data Integrity and Auditability
+#### Data Integrity and Auditability
 For financial applications, data integrity is crucial:
 
 1. **Database Constraints**
@@ -443,11 +460,11 @@ For financial applications, data integrity is crucial:
    - Off-site backup storage
    - Documented disaster recovery procedures
 
-## Change & Flexibility
+### 4. Change & Flexibility
 
 Affordability rules change frequently and may need to be updated by non-engineering teams. To support this without requiring constant redeployment, I would implement a database-backed rules engine architecture:
 
-### 1. Database-Backed Rules Engine
+#### Database-Backed Rules Engine
 Store affordability rules as structured data in the database rather than hardcoding them:
 
 ```ruby
@@ -475,7 +492,7 @@ create_table :affordability_rule_versions do |t|
 end
 ```
 
-### 2. Rule Evaluation Service
+#### Rule Evaluation Service
 Create a flexible service that evaluates rules dynamically from the database:
 
 ```ruby
@@ -552,7 +569,7 @@ class AffordabilityRuleEngine
 end
 ```
 
-### 3. Hot-Loading from Database
+#### Hot-Loading from Database
 Implement a caching strategy that allows rules to be updated without redeployment:
 
 ```ruby
@@ -596,7 +613,7 @@ class AffordabilityRules
 end
 ```
 
-### 4. Admin Interface for Rule Management
+#### Admin Interface for Rule Management
 Create a Rails admin interface that allows non-engineering teams to manage rules:
 
 ```ruby
@@ -698,7 +715,7 @@ class Admin::AffordabilityRulesController < ApplicationController
 end
 ```
 
-### 5. Assessment Service Integration
+#### Assessment Service Integration
 Update the assessment service to use the rule engine:
 
 ```ruby
@@ -762,11 +779,11 @@ This architecture provides:
 - **Compliance**: Full audit trail for regulatory requirements
 - **Testing**: Rules can be tested in isolation before activation
 
-## Trade-offs & Prioritisation
+### 5. Trade-offs & Prioritisation
 
 Given the time constraints for this technical test, I made several deliberate trade-offs:
 
-### 1. Simplicity Over Flexibility
+#### Simplicity Over Flexibility
 I prioritised a simple, straightforward implementation over a more flexible but complex solution:
 
 - **Single Database**: Used SQLite instead of PostgreSQL for simplicity
@@ -775,7 +792,7 @@ I prioritised a simple, straightforward implementation over a more flexible but 
 
 **Reasoning**: The technical test requirements focused on demonstrating understanding of Rails, API design, and business logic implementation. These simplifications allowed me to deliver a complete, working solution within the time constraints.
 
-### 2. Limited Error Scenarios
+#### Limited Error Scenarios
 I focused on happy path and basic error handling rather than comprehensive edge cases:
 
 - **Basic Validation**: Implemented only the essential validations
@@ -784,7 +801,7 @@ I focused on happy path and basic error handling rather than comprehensive edge 
 
 **Reasoning**: The goal was to demonstrate the ability to create a functional API with proper error handling. Comprehensive error handling would have required significantly more time without adding much value to the core demonstration.
 
-### 3. Testing Scope
+#### Testing Scope
 I prioritised testing the most critical components:
 
 - **Core Business Logic**: Full test coverage for affordability calculations
@@ -798,7 +815,7 @@ I prioritised testing the most critical components:
 
 **Reasoning**: Testing time needed to be balanced against implementation time. I focused on tests that would verify the core functionality and business rules, which are the most important aspects of the mortgage application.
 
-### 4. Infrastructure Considerations
+#### Infrastructure Considerations
 I made infrastructure trade-offs to focus on application development:
 
 - **No Dockerfile**: Omitted containerization to focus on Rails implementation
@@ -807,7 +824,7 @@ I made infrastructure trade-offs to focus on application development:
 
 **Reasoning**: The technical test is about demonstrating Rails and API development skills, not DevOps capabilities. Infrastructure considerations were simplified to maintain focus on the core requirements.
 
-### 5. Technical Debt
+#### Technical Debt
 I knowingly incurred technical debt in several areas:
 
 - **Duplicate Calculations**: LTV and DTI calculations exist in both model and service
@@ -817,11 +834,11 @@ I knowingly incurred technical debt in several areas:
 
 **Reasoning**: These were deliberate trade-offs to deliver a functional solution within the time constraints. Each item was documented with clear refactoring strategies for production.
 
-## Next Steps (1-2 Week Prioritisation)
+### 6. Next Steps (1-2 Week Prioritisation)
 
 If I were to continue developing this system over the next 1-2 weeks, I would prioritise the following improvements:
 
-### 1. Enhanced Error Handling and Validation (Priority: High)
+#### 1. Enhanced Error Handling and Validation (Priority: High)
 **Time Estimate**: 2-3 days
 **Why**: This directly improves user experience and system robustness
 **Tasks**:
@@ -830,7 +847,7 @@ If I were to continue developing this system over the next 1-2 weeks, I would pr
 - Add error context (request ID, timestamp) to all error responses
 - Create custom exception classes for different error types
 
-### 2. Authentication and Authorization (Priority: High)
+#### 2. Authentication and Authorization (Priority: High)
 **Time Estimate**: 2-3 days
 **Why**: Essential for any production application handling sensitive financial data
 **Tasks**:
@@ -839,7 +856,7 @@ If I were to continue developing this system over the next 1-2 weeks, I would pr
 - Secure endpoints with authentication middleware
 - Add user management capabilities
 
-### 3. Background Processing (Priority: Medium)
+#### 3. Background Processing (Priority: Medium)
 **Time Estimate**: 2-3 days
 **Why**: Improves performance and user experience for long-running processes
 **Tasks**:
@@ -848,7 +865,7 @@ If I were to continue developing this system over the next 1-2 weeks, I would pr
 - Add job status monitoring and notifications
 - Implement retry logic for failed jobs
 
-### 4. Test Suite Enhancement (Priority: Medium)
+#### 4. Test Suite Enhancement (Priority: Medium)
 **Time Estimate**: 2-3 days
 **Why**: Ensures system reliability and maintainability
 **Tasks**:
@@ -857,7 +874,7 @@ If I were to continue developing this system over the next 1-2 weeks, I would pr
 - Add performance benchmarks
 - Increase test coverage to 95%+
 
-### 5. Documentation and Developer Experience (Priority: Low)
+#### 5. Documentation and Developer Experience (Priority: Low)
 **Time Estimate**: 1-2 days
 **Why**: Improves onboarding and maintenance efficiency
 **Tasks**:
