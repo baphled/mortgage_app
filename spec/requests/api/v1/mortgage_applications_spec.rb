@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Api::V1::MortgageApplications', type: :request do
-  let(:parsed_body) { JSON.parse(response.body) }
+  let(:parsed_body) { response.parsed_body }
 
   def build_application(overrides = {})
     defaults = {
