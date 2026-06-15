@@ -48,7 +48,7 @@ group :development, :test do
   gem "factory_bot_rails", "~> 6.5"
 
   # Shoulda matchers for RSpec
-  gem "shoulda-matchers", "~> 7.0"
+  gem "shoulda-matchers", "~> 8.0"
 end
 
 group :production do
